@@ -1,6 +1,6 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║        PRICE.FUSION — МОНОЛИТНОЕ СТРИМЛИТ ПРИЛОЖЕНИЕ (ВСЁ В 1 ФАЙЛЕ)         ║
-# ║   Авто-поиск: Артикул | Бренд | Цена → Мин. цена + Источник + Экспорт        
+#    Авто-поиск: Артикул | Бренд | Цена → Мин. цена + Источник + Экспорт        ║
 # ║   Оптимизировано для 300k+ строк на файл                                     ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -12,7 +12,7 @@ import re
 from pathlib import Path
 from datetime import datetime
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # 0. КОНФИГУРАЦИЯ СТРАНИЦЫ
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -23,25 +23,34 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. СТИЛИЗАЦИЯ (СИНИЯ ТЕМА + ТЁМНЫЕ КНОПКИ)
+# 1. СТИЛИЗАЦИЯ (СИНИЯ ТЕМА + ТЁМНЫЕ КНОПКИ + ЧИТАЕМОСТЬ)
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
+    /* ── Общий фон и шрифт ── */
     .stApp {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%);
-        color: #f4f4f5;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%) !important;
+        color: #f4f4f5 !important;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+    
+    /* ── Сайдбар ── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a3352 0%, #234567 100%) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
-    [data-testid="stSidebar"] * { color: #e0e7ff !important; }
+    [data-testid="stSidebar"] * {
+        color: #e0e7ff !important;
+    }
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3 {
+        color: #ffffff !important;
+    }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
-    header[data-testid="stHeader"] { background: transparent; }
+    header[data-testid="stHeader"] { background: transparent !important; }
 
+    /* ── Кнопки управления (ТЁМНО-СИНИЕ) ── */
     .stButton > button {
         background: linear-gradient(135deg, #1e3a5f 0%, #0f2440 100%) !important;
         color: #ffffff !important;
@@ -61,8 +70,12 @@ st.markdown(
         background: linear-gradient(135deg, #2d5a87 0%, #1e3a5f 100%) !important;
         border-color: rgba(96, 165, 250, 0.6) !important;
     }
-    .stButton > button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .stButton > button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
+    /* ── Кнопки скачивания (ТЁМНО-ЗЕЛЁНЫЕ) ── */
     .stDownloadButton > button {
         background: linear-gradient(135deg, #064e3b 0%, #065f46 100%) !important;
         color: #ffffff !important;
@@ -82,24 +95,49 @@ st.markdown(
         border-color: rgba(16, 185, 129, 0.6) !important;
     }
 
+    /* ── Загрузчик файлов ── */
     [data-testid="stFileUploader"] {
-        background: rgba(255, 255, 255, 0.05);
-        border: 2px dashed rgba(255, 255, 255, 0.2);
-        border-radius: 16px;
-        padding: 1.2rem;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 2px dashed rgba(255, 255, 255, 0.2) !important;
+        border-radius: 16px !important;
+        padding: 1.2rem !important;
         transition: all 0.2s;
     }
     [data-testid="stFileUploader"]:hover {
-        border-color: rgba(96, 165, 250, 0.6);
-        background: rgba(96, 165, 250, 0.05);
+        border-color: rgba(96, 165, 250, 0.6) !important;
+        background: rgba(96, 165, 250, 0.05) !important;
     }
-    [data-testid="stFileUploadDropzone"] { background: transparent !important; }
+    [data-testid="stFileUploadDropzone"] {
+        background: transparent !important;
+    }
+    [data-testid="stFileUploader"] *, 
+    [data-testid="stFileUploader"] span, 
+    [data-testid="stFileUploader"] p, 
+    [data-testid="stFileUploader"] label {
+        color: #f4f4f5 !important;
+    }
+    [data-testid="stFileUploader"] button {
+        background-color: #0f2440 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #1e3a5f !important;
+        border-color: #60a5fa !important;
+    }
+    [data-testid="stFileUploader"] svg {
+        fill: #93c5fd !important;
+        color: #93c5fd !important;
+    }
 
+    /* ── Метрики ── */
     [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 16px;
-        padding: 1.1rem 1.3rem;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 16px !important;
+        padding: 1.1rem 1.3rem !important;
         backdrop-filter: blur(10px);
     }
     [data-testid="stMetricValue"] {
@@ -115,20 +153,22 @@ st.markdown(
         color: #93c5fd !important;
     }
 
+    /* ── Карточки файлов ── */
     .card {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 16px;
-        padding: 1.2rem 1.4rem;
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 16px !important;
+        padding: 1.2rem 1.4rem !important;
         margin-bottom: 0.75rem;
         backdrop-filter: blur(10px);
         transition: border-color 0.2s;
     }
-    .card:hover { border-color: rgba(96, 165, 250, 0.4); }
-    .card-ok   { border-left: 3px solid #10b981; }
-    .card-warn { border-left: 3px solid #f59e0b; }
-    .card-err  { border-left: 3px solid #ef4444; }
+    .card:hover { border-color: rgba(96, 165, 250, 0.4) !important; }
+    .card-ok   { border-left: 3px solid #10b981 !important; }
+    .card-warn { border-left: 3px solid #f59e0b !important; }
+    .card-err  { border-left: 3px solid #ef4444 !important; }
 
+    /* ── Бейджи ── */
     .badge {
         display: inline-block;
         padding: 0.2em 0.7em;
@@ -142,6 +182,7 @@ st.markdown(
     .badge-yellow { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
     .badge-blue   { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
 
+    /* ── Заголовки и текст ── */
     .hero-title {
         font-size: 2.8rem;
         font-weight: 800;
@@ -152,7 +193,7 @@ st.markdown(
         letter-spacing: -0.03em;
     }
     .hero-sub {
-        color: #bfdbfe;
+        color: #bfdbfe !important;
         font-size: 1rem;
         margin-top: 0.5rem;
         line-height: 1.6;
@@ -163,21 +204,22 @@ st.markdown(
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.18em;
-        color: #93c5fd;
+        color: #93c5fd !important;
         margin-bottom: 0.8rem;
     }
 
+    /* ── Шаги / Онбординг ── */
     .step-box {
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 20px;
-        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 20px !important;
+        padding: 1.5rem !important;
         text-align: left;
         backdrop-filter: blur(10px);
         transition: all 0.2s;
     }
     .step-box:hover {
-        border-color: rgba(96, 165, 250, 0.4);
+        border-color: rgba(96, 165, 250, 0.4) !important;
         transform: translateY(-2px);
     }
     .step-num {
@@ -190,10 +232,11 @@ st.markdown(
         justify-content: center;
         font-size: 1.05rem;
         font-weight: 800;
-        color: #bfdbfe;
+        color: #bfdbfe !important;
         margin-bottom: 0.9rem;
     }
 
+    /* ── Инпуты, селекты, текстовые поля ── */
     input, select, .stSelectbox > div > div, .stTextInput > div > div > input, [data-testid="stTextInputRootElement"] input {
         background: #1e3a5f !important;
         background-color: #1e3a5f !important;
@@ -217,33 +260,26 @@ st.markdown(
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 12px !important;
     }
-    div[data-baseweb="select"] * { color: #ffffff !important; }
-
-    [data-testid="stFileUploader"] {
-        background-color: #1e3a5f !important;
-        background: #1e3a5f !important;
-        border: 2px dashed rgba(255, 255, 255, 0.2) !important;
-        border-radius: 16px !important;
-    }
-    [data-testid="stFileUploader"] *, 
-    [data-testid="stFileUploader"] span, 
-    [data-testid="stFileUploader"] p, 
-    [data-testid="stFileUploader"] label { color: #f4f4f5 !important; }
-    [data-testid="stFileUploader"] button {
-        background-color: #0f2440 !important;
+    div[data-baseweb="select"] * {
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 10px !important;
-        font-weight: 600 !important;
-        transition: background 0.2s !important;
     }
-    [data-testid="stFileUploader"] button:hover {
+    
+    /* ── Выпадающие списки (опции) ── */
+    div[data-baseweb="menu"] {
         background-color: #1e3a5f !important;
-        border-color: #60a5fa !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
     }
-    [data-testid="stFileUploader"] svg { fill: #93c5fd !important; color: #93c5fd !important; }
+    div[data-baseweb="menu"] * {
+        color: #ffffff !important;
+    }
+    div[data-baseweb="option"]:hover {
+        background-color: #2d5a87 !important;
+    }
 
-    [data-testid="stTabs"] > div:first-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+    /* ── Табы ── */
+    [data-testid="stTabs"] > div:first-child {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
     button[data-baseweb="tab"] {
         background: transparent !important;
         color: #93c5fd !important;
@@ -263,15 +299,62 @@ st.markdown(
         background: rgba(96, 165, 250, 0.15) !important;
     }
 
+    /* ── DataFrame таблица ── */
+    div[data-testid="stDataFrame"] {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    div[data-testid="stDataFrame"] table {
+        color: #f4f4f5 !important;
+    }
+    div[data-testid="stDataFrame"] th {
+        background: rgba(30, 58, 95, 0.8) !important;
+        color: #93c5fd !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    div[data-testid="stDataFrame"] td {
+        color: #f4f4f5 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    }
+
+    /* ── Expander ── */
+    [data-testid="stExpander"] {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stExpander"] * {
+        color: #f4f4f5 !important;
+    }
+
+    /* ── Progress bar ── */
+    [data-testid="stProgress"] > div > div {
+        background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
+    }
+
+    /* ── Info/Warning/Error boxes ── */
+    [data-testid="stAlert"] {
+        background: rgba(30, 58, 95, 0.8) !important;
+        border: 1px solid rgba(96, 165, 250, 0.3) !important;
+        border-radius: 12px !important;
+        color: #f4f4f5 !important;
+    }
+    [data-testid="stAlert"] * {
+        color: #f4f4f5 !important;
+    }
+
     hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1.5rem 0; }
+    
+    /* ── Скроллбар ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #1e3a5f; }
     ::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.5); border-radius: 999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(147, 197, 253, 0.7); }
-    div[data-testid="stDataFrame"] {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+    
+    /* ── Caption ── */
+    .stCaption {
+        color: #93c5fd !important;
     }
     </style>
     """,
@@ -310,14 +393,25 @@ def detect_column(columns: list[str], keywords: list[str]) -> str | None:
                 best_col = col
     return best_col
 
-# ВЕКТОРИЗОВАННАЯ очистка цен — критично для 300k+ строк
+# ИСПРАВЛЕННАЯ ВЕКТОРИЗОВАННАЯ очистка цен — без Unicode escapes в regex
 def clean_prices_vectorized(series: pd.Series) -> pd.Series:
     """Преобразует Series со строковыми ценами в float. Неверные → NaN."""
-    s = series.astype(str).str.strip()
-    # Убрать пробельные символы (включая неразрывные)
-    s = s.str.replace(r"[\s\u00a0\u202f\u2009]+", "", regex=True)
-    # Убрать символы валют и буквенные суффиксы
-    s = s.str.replace(r"[₽$€£¥₴руб\.RUBrub]+", "", regex=True, case=False)
+    # Конвертируем в object dtype чтобы избежать PyArrow проблем с regex
+    s = series.fillna("").astype(object).astype(str).str.strip()
+    
+    # Заменяем Unicode whitespace символы на обычный пробел (regex=False)
+    s = s.str.replace("\u00a0", " ", regex=False)
+    s = s.str.replace("\u202f", " ", regex=False)
+    s = s.str.replace("\u2009", " ", regex=False)
+    
+    # Убираем все пробелы
+    s = s.str.replace(r"\s+", "", regex=True)
+    
+    # Убираем символы валют и буквенные суффиксы
+    s = s.str.replace(r"[₽$€£¥₴]", "", regex=True)
+    s = s.str.replace(r"руб\.?", "", regex=True, case=False)
+    s = s.str.replace(r"RUB|rub", "", regex=True, case=False)
+    
     # Пустые → NaN
     s = s.replace({"": np.nan, "nan": np.nan, "none": np.nan, "None": np.nan})
     
@@ -450,19 +544,24 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
         result["message"] = f"❌ Не найдены обязательные столбцы (Артикул: {bool(col_art)}, Цена: {bool(col_price)})"
         return result
 
-    # ── ВЕКТОРИЗОВАННАЯ обработка (вместо iterrows) ──
+    # Проверка что колонки существуют в DataFrame
+    if col_art not in df.columns or col_price not in df.columns:
+        result["message"] = f"❌ Колонки не найдены в данных (Артикул: {col_art}, Цена: {col_price})"
+        return result
+
+    # ─ ВЕКТОРИЗОВАННАЯ обработка ─
     source = Path(uploaded_file.name).stem
     
     # Артикул: строка, strip, фильтр мусора
-    art_series = df[col_art].astype(str).str.strip()
-    invalid_art = art_series.isin(["", "nan", "none", "NaN", "None", "nan"]) | art_series.isna()
+    art_series = df[col_art].fillna("").astype(str).str.strip()
+    invalid_art = art_series.isin(["", "nan", "none", "NaN", "None"]) | art_series.isna()
     
     # Цена: векторизованная очистка
     price_series = clean_prices_vectorized(df[col_price])
     
     # Бренд
-    if col_brand:
-        brand_series = df[col_brand].astype(str).str.strip()
+    if col_brand and col_brand in df.columns:
+        brand_series = df[col_brand].fillna("").astype(str).str.strip()
         brand_series = brand_series.where(~brand_series.isin(["", "nan", "none", "NaN", "None"]), "—")
         brand_series = brand_series.replace({"": "—", np.nan: "—"})
     else:
@@ -472,7 +571,7 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
     valid_mask = ~invalid_art & price_series.notna()
     
     if valid_mask.sum() == 0:
-        result["message"] = "⚠️ Нет строк с валидными артикулами и ценами"
+        result["message"] = "️ Нет строк с валидными артикулами и ценами"
         result["status"] = "warning"
         return result
     
@@ -490,15 +589,13 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
     return result
 
 def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
-    """
-    Оптимизированная агрегация для больших датасетов.
-    """
+    """Оптимизированная агрегация для больших датасетов."""
     if df_all.empty:
         return pd.DataFrame()
     
     df = df_all.copy()
     
-    # Фильтр битых артикулов (на всякий случай)
+    # Фильтр битых артикулов
     df = df[
         df["Артикул"].notna() & 
         (df["Артикул"].str.strip() != "") & 
@@ -587,7 +684,7 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
 def to_csv_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False, encoding="utf-8-sig", sep=";").encode("utf-8-sig")
 
-# ────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # 4. СОСТОЯНИЕ (SESSION STATE)
 # ─────────────────────────────────────────────────────────────────────────────
 if "parsed_results" not in st.session_state:
@@ -597,9 +694,9 @@ if "df_final" not in st.session_state:
 if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
-# ────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # 5. САЙДБАР
-# ────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
         """
@@ -813,11 +910,11 @@ if df_final.empty and not st.session_state.parsed_results:
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 8. КАРТОЧКИ ФАЙЛОВ И РУЧНАЯ КОРРЕКЦИЯ КОЛОНОК
-# ─────────────────────────────────────────────────────────────────────────────
-st.markdown('<div class="section-title">📂 Источники прайс-листов</div>', unsafe_allow_html=True)
+# ────────────────────────────────────────────────────────────────────────────
+st.markdown('<div class="section-title"> Источники прайс-листов</div>', unsafe_allow_html=True)
 
 for res in st.session_state.parsed_results:
-    icon  = "✅" if res["status"] == "ok" else ("⚠️" if res["status"] == "warning" else "❌")
+    icon  = "✅" if res["status"] == "ok" else ("️" if res["status"] == "warning" else "❌")
     cls   = "card-ok" if res["status"] == "ok" else ("card-warn" if res["status"] == "warning" else "card-err")
     badge = (
         f'<span class="badge badge-green">OK · {res["row_count"]:,} строк</span>'
@@ -851,7 +948,7 @@ for res in st.session_state.parsed_results:
     )
 
     if res["status"] in ("error", "warning") or not res["col_art"] or not res["col_price"]:
-        with st.expander(f" Настроить столбцы вручную для «{res['name']}»"):
+        with st.expander(f"🔧 Настроить столбцы вручную для «{res['name']}»"):
             try:
                 raw_test = None
                 for uf in st.session_state.uploaded_objects:
@@ -878,7 +975,7 @@ for res in st.session_state.parsed_results:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. МЕТРИКИ (KPI DASHBOARD) — ДОБАВЛЕНА СУММА МИН. ЦЕН
+# 9. МЕТРИКИ (KPI DASHBOARD)
 # ─────────────────────────────────────────────────────────────────────────────
 if not df_final.empty:
     st.markdown('<div class="section-title">📊 Сводные метрики агрегатора</div>', unsafe_allow_html=True)
@@ -887,11 +984,10 @@ if not df_final.empty:
     total_offers = int(df_final["Предложений"].sum()) if "Предложений" in df_final.columns else 0
     total_savings = df_final["Экономия_руб"].sum() if "Экономия_руб" in df_final.columns else 0
     avg_price = df_final["Цена"].mean()
-    # ★ ТОЧНАЯ СУММА МИНИМАЛЬНЫХ ЦЕН ПО ВСЕМ SKU (бюджет закупки)
     total_min_sum = df_final["Цена"].sum()
 
     m1, m2, m3, m4, m5 = st.columns(5)
-    m1.metric(" Уникальных SKU", f"{total_unique:,}")
+    m1.metric("🔑 Уникальных SKU", f"{total_unique:,}")
     m2.metric("📊 Источников", f"{total_offers:,}", help="Сумма уникальных поставщиков по всем SKU")
     m3.metric("💰 Средняя мин. цена", f"{avg_price:,.0f} ₽")
     m4.metric("💵 Сумма мин. цен", f"{total_min_sum:,.0f} ₽", help="Точная сумма минимальных цен по всем SKU — бюджет закупки")
@@ -899,7 +995,7 @@ if not df_final.empty:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-# ────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # 10. ТАБЛИЦА РЕЗУЛЬТАТОВ, АНАЛИЗ И ЭКСПОРТ
 # ─────────────────────────────────────────────────────────────────────────────
 if not df_final.empty:
@@ -980,7 +1076,7 @@ if not df_final.empty:
                 use_container_width=True,
             )
 
-    # ── TAB 2: АНАЛИЗ И ГРАФИКИ ──
+    # ── TAB 2: АНАЛИЗ И ГРАФИКИ ─
     with tab_analysis:
         st.markdown('<div class="section-title">📈 Анализ цен и распределения</div>', unsafe_allow_html=True)
 
