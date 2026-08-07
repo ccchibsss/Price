@@ -1205,8 +1205,23 @@ if not df_final.empty:
         st.markdown('<div class="section-title" style="margin-top:0.8rem;">💾 Скачивание результата</div>', unsafe_allow_html=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        excel_bytes = to_excel_bytes(df_view[disp_cols])
-        csv_bytes = to_csv_bytes(df_view[disp_cols])
+        export_rows = len(df_view)
+
+        # Streamlit download_button требует готовые bytes, поэтому показываем статус
+        # именно на этапе подготовки файлов перед появлением кнопок скачивания.
+        with st.status(
+            f"Формирую файлы экспорта: {export_rows:,} строк...",
+            expanded=False,
+        ) as export_status:
+            export_status.write("Подготавливаю Excel (.xlsx)...")
+            excel_bytes = to_excel_bytes(df_view[disp_cols])
+            export_status.write("Подготавливаю CSV (.csv)...")
+            csv_bytes = to_csv_bytes(df_view[disp_cols])
+            export_status.update(
+                label=f"Файлы готовы к скачиванию: {export_rows:,} строк",
+                state="complete",
+                expanded=False,
+            )
 
         dl_c1, dl_c2 = st.columns(2)
         with dl_c1:
