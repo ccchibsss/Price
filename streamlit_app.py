@@ -40,6 +40,10 @@ st.markdown(
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a3352 0%, #234567 100%) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 21rem !important;
+    }
+    [data-testid="stSidebar"] > div:first-child {
+        background: linear-gradient(180deg, #1a3352 0%, #234567 100%) !important;
     }
     [data-testid="stSidebar"] * {
         color: #e0e7ff !important;
@@ -49,114 +53,75 @@ st.markdown(
     [data-testid="stSidebar"] h3 {
         color: #ffffff !important;
     }
-    [data-testid="stToolbar"] { display: flex; !important; }
-    [data-testid="stDecoration"] { display: flex !important; }
-    header[data-testid="stHeader"] { background: transparent !important; }
-
-    /* ── ФИКС КНОПКИ СВЕРНУТЬ / РАЗВЕРНУТЬ САЙДБАР ── */
-    /* Не скрываем header — там живёт кнопка collapsedControl */
+    /* ── Скрыть верхние иконки Streamlit (Share / Deploy / меню) ── */
+    #MainMenu { visibility: hidden !important; }
+    footer { visibility: hidden !important; }
     header[data-testid="stHeader"] {
-        display: block !important;
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    [data-testid="stToolbar"],
+    [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"],
+    [data-testid="stBaseButton-header"],
+    [data-testid="stBaseButton-headerNoPadding"],
+    [data-testid="stToolbarActions"],
+    [data-testid="stAppDeployButton"],
+    .stAppDeployButton,
+    button[kind="header"],
+    button[kind="headerNoPadding"],
+    [data-testid="stHeader"] button,
+    header[data-testid="stHeader"] button,
+    header[data-testid="stHeader"] a,
+    header[data-testid="stHeader"] [data-testid="baseButton-header"],
+    header[data-testid="stHeader"] [data-testid="baseButton-headerNoPadding"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        overflow: hidden !important;
+    }
+
+    /* ── Кнопка разворачивания свёрнутого сайдбара (должна быть ВСЕГДА видна) ── */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
         visibility: visible !important;
         opacity: 1 !important;
-        height: 2.875rem !important;
-        pointer-events: auto !important;
-    }
-    /* Кнопка "Развернуть" когда сайдбар свернут — Streamlit рендерит collapsedControl */
-    [data-testid="collapsedControl"] {
-        position: fixed !important;
-        top: 14px !important;
-        left: 14px !important;
         z-index: 999999 !important;
-        display: flex !important;
+        background: #0f2440 !important;
+        border: 1px solid rgba(96, 165, 250, 0.55) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
+        padding: 2px !important;
+        pointer-events: auto !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: auto !important;
+        min-height: auto !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button {
+        display: inline-flex !important;
         visibility: visible !important;
         opacity: 1 !important;
         pointer-events: auto !important;
-        transform: none !important;
+        background: transparent !important;
+        width: auto !important;
+        height: auto !important;
     }
-    [data-testid="collapsedControl"] button {
-        background: #1e3a5f !important;
-        background-color: #1e3a5f !important;
-        border: 2px solid #60a5fa !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 18px rgba(15, 36, 64, 0.9) !important;
-        padding: 8px 12px !important;
-        min-width: 42px !important;
-        min-height: 42px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        visibility: visible !important;
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] button svg {
+        fill: #7dd3fc !important;
+        color: #7dd3fc !important;
         opacity: 1 !important;
-    }
-    [data-testid="collapsedControl"] button:hover {
-        background: #2d5a87 !important;
-        background-color: #2d5a87 !important;
-        border-color: #93c5fd !important;
-        box-shadow: 0 6px 22px rgba(59,130,246,0.6) !important;
-        transform: scale(1.05);
-    }
-    [data-testid="collapsedControl"] svg {
-        stroke: #ffffff !important;
-        fill: none !important;
-        width: 20px !important;
-        height: 20px !important;
-        color: #ffffff !important;
         display: block !important;
         visibility: visible !important;
-        opacity: 1 !important;
-    }
-    /* Кнопка "Свернуть" когда сайдбар открыт */
-    [data-testid="stSidebarCollapseButton"] button {
-        background: rgba(255,255,255,0.08) !important;
-        background-color: rgba(255,255,255,0.08) !important;
-        border: 1px solid rgba(96, 165, 250, 0.4) !important;
-        border-radius: 8px !important;
-        padding: 4px !important;
-    }
-    [data-testid="stSidebarCollapseButton"] button:hover {
-        background: rgba(255,255,255,0.15) !important;
-        background-color: rgba(255,255,255,0.15) !important;
-    }
-    [data-testid="stSidebarCollapseButton"] svg {
-        stroke: #ffffff !important;
-        fill: none !important;
-    }
-    /* Страховка: header кнопки всегда видимы */
-    header[data-testid="stHeader"] button[kind="header"],
-    header[data-testid="stHeader"] button[data-testid="baseButton-header"] {
-        background: #1e3a5f !important;
-        border: 1px solid rgba(96,165,250,0.5) !important;
-        border-radius: 8px !important;
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
-    header[data-testid="stHeader"] button[kind="header"] svg,
-    header[data-testid="stHeader"] button[data-testid="baseButton-header"] svg {
-        stroke: #ffffff !important;
-        display: block !important;
-    }
-    /* ── Резервная кнопка в контенте если sidebar скрыт ── */
-    #pf-open-sidebar {
-        position: fixed !important;
-        top: 14px !important;
-        left: 14px !important;
-        z-index: 999998 !important;
-        background: #1e3a5f !important;
-        color: #ffffff !important;
-        border: 2px solid #60a5fa !important;
-        border-radius: 12px !important;
-        padding: 10px 16px !important;
-        font-weight: 700 !important;
-        font-size: 0.85rem !important;
-        box-shadow: 0 4px 18px rgba(15,36,64,0.9) !important;
-        cursor: pointer !important;
-        display: none;
-    }
-    #pf-open-sidebar:hover {
-        background: #2d5a87 !important;
-        border-color: #93c5fd !important;
     }
 
     /* ── Кнопки управления (ТЁМНО-СИНИЕ) ── */
@@ -182,6 +147,13 @@ st.markdown(
     .stButton > button:disabled {
         opacity: 0.5 !important;
         cursor: not-allowed !important;
+    }
+    .stButton > button {
+        color: #ffffff !important;
+    }
+    .stButton > button b,
+    .stButton > button span:first-child {
+        color: #7dd3fc !important;
     }
 
     /* ── Кнопки скачивания (ТЁМНО-ЗЕЛЁНЫЕ) ── */
@@ -216,8 +188,48 @@ st.markdown(
         border-color: rgba(56, 189, 248, 0.8) !important;
         background: rgba(15, 36, 64, 0.95) !important;
     }
-    [data-testid="stFileUploadDropzone"] {
+    [data-testid="stFileUploadDropzone"],
+    section[data-testid="stFileUploadDropzone"],
+    [data-testid="stFileUploadDropzone"] > div,
+    [data-testid="stFileUploadDropzoneInput"],
+    [data-testid="stFileUploader"] > div,
+    [data-testid="stFileUploader"] section,
+    [data-testid="stFileUploader"] > div > div,
+    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] {
         background: transparent !important;
+        background-color: transparent !important;
+    }
+    [data-testid="stFileUploader"] small,
+    [data-testid="stFileUploadDropzone"] small {
+        color: #9db8d8 !important;
+    }
+    [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploaderFile"] > div,
+    [data-testid="stFileUploader"] ul,
+    [data-testid="stFileUploader"] ul li,
+    [data-testid="stFileUploader"] ul li > div {
+        background: rgba(15, 36, 64, 0.9) !important;
+        background-color: rgba(15, 36, 64, 0.9) !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stFileUploaderFile"] {
+        border: 1px solid rgba(96, 165, 250, 0.25) !important;
+        margin-bottom: 0.3rem !important;
+    }
+    [data-testid="stFileUploaderFile"] *,
+    [data-testid="stFileUploaderFileName"],
+    [data-testid="stFileUploaderFileData"] small {
+        color: #e8eefc !important;
+    }
+    [data-testid="stFileUploaderDeleteBtn"] button,
+    [data-testid="stFileUploaderFile"] button {
+        background: transparent !important;
+        border: none !important;
+    }
+    [data-testid="stFileUploaderDeleteBtn"] svg,
+    [data-testid="stFileUploaderFile"] button svg {
+        fill: #93c5fd !important;
+        color: #93c5fd !important;
     }
     [data-testid="stFileUploader"] *,
     [data-testid="stFileUploader"] span,
@@ -241,53 +253,55 @@ st.markdown(
         fill: #7dd3fc !important;
         color: #7dd3fc !important;
     }
-    /* ── ФИКС БЕЛОГО ФОНА У СПИСКА ЗАГРУЖЕННЫХ ФАЙЛОВ ── */
-    [data-testid="stFileUploader"] section {
-        background: transparent !important;
-        background-color: transparent !important;
+
+    /* ── Мульти-селект ── */
+    [data-testid="stMultiSelect"] label,
+    [data-testid="stMultiSelect"] label p,
+    [data-testid="stMultiSelect"] > label p {
+        color: #f4f4f5 !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
     }
-    /* Контейнер списка файлов */
-    [data-testid="stFileUploader"] ul {
-        background: transparent !important;
-    }
-    /* Каждый файл — тёмная карточка вместо белой */
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"],
-    [data-testid="stFileUploader"] li,
-    [data-testid="stFileUploaderFile"] {
-        background: rgba(30, 58, 95, 0.95) !important;
-        background-color: rgba(30, 58, 95, 0.95) !important;
+    [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
+        background-color: #0f2440 !important;
         border: 1px solid rgba(96, 165, 250, 0.35) !important;
         border-radius: 12px !important;
-        padding: 0.6rem 0.8rem !important;
     }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] *,
-    [data-testid="stFileUploaderFile"] * {
+    [data-testid="stMultiSelect"] [data-baseweb="select"]:focus-within > div {
+        border-color: #60a5fa !important;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
+    }
+    [data-testid="stMultiSelect"] input {
+        color: #ffffff !important;
+    }
+    [data-testid="stMultiSelect"] input::placeholder {
+        color: #7d9ac2 !important;
+    }
+    [data-testid="stMultiSelect"] [data-baseweb="tag"] {
+        background: rgba(56, 189, 248, 0.18) !important;
+        color: #bae6fd !important;
+        border: 1px solid rgba(56, 189, 248, 0.4) !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stMultiSelect"] [data-baseweb="tag"] svg {
+        fill: #bae6fd !important;
+        color: #bae6fd !important;
+    }
+    [data-baseweb="popover"] div[role="listbox"],
+    [data-baseweb="menu"] {
+        background-color: #0f2440 !important;
+        border: 1px solid rgba(96, 165, 250, 0.3) !important;
+        border-radius: 12px !important;
+    }
+    [data-baseweb="menu"] li,
+    [data-baseweb="menu"] li * {
         color: #e8eefc !important;
     }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] small,
-    [data-testid="stFileUploaderFile"] small {
-        color: #93c5fd !important;
-    }
-    /* Кнопка удаления файла (X) */
-    [data-testid="stFileUploaderDeleteBtn"],
-    [data-testid="stFileUploader"] button[data-testid="stFileUploaderDeleteBtn"] {
-        background: rgba(239, 68, 68, 0.15) !important;
-        border: 1px solid rgba(239, 68, 68, 0.3) !important;
-        color: #fca5a5 !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] button {
-        background: rgba(15, 36, 64, 0.8) !important;
-        border: 1px solid rgba(96,165,250,0.3) !important;
-    }
-    /* Ловим все инлайновые белые фоны Streamlit */
-    [data-testid="stFileUploader"] div[style*="background-color: rgb(255"],
-    [data-testid="stFileUploader"] div[style*="background: rgb(255"],
-    [data-testid="stFileUploader"] div[style*="background-color: #fff"],
-    [data-testid="stFileUploader"] div[style*="background: #fff"],
-    [data-testid="stFileUploader"] [style*="255, 255, 255"],
-    [data-testid="stFileUploader"] [style*="255,255,255"] {
-        background: rgba(30, 58, 95, 0.95) !important;
-        background-color: rgba(30, 58, 95, 0.95) !important;
+    [data-baseweb="menu"] li:hover,
+    li[role="option"]:hover,
+    div[role="option"]:hover {
+        background-color: rgba(56, 189, 248, 0.18) !important;
     }
 
     /* ── Метрики ── */
@@ -362,21 +376,8 @@ st.markdown(
         font-weight: 700 !important;
         text-transform: uppercase;
         letter-spacing: 0.18em;
-        color: #ffffff !important;
+        color: #93c5fd !important;
         margin-bottom: 0.8rem;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.3);
-    }
-    /* Специально для блока экспорта — всегда белый */
-    .export-title {
-        font-size: 0.78rem !important;
-        font-weight: 800 !important;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-        color: #ffffff !important;
-        margin-bottom: 0.6rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
     }
 
     /* ── Шаги / Онбординг ── */
@@ -448,21 +449,6 @@ st.markdown(
     div[data-baseweb="menu"] * { color: #ffffff !important; }
     div[data-baseweb="option"]:hover {
         background-color: #2d5a87 !important;
-    }
-
-    /* ── Multiselect — белый шрифт для лейбла и тегов ── */
-    [data-testid="stMultiSelect"] label,
-    [data-testid="stMultiSelect"] label p,
-    [data-testid="stMultiSelect"] > label {
-        color: #ffffff !important;
-        font-weight: 600 !important;
-    }
-    [data-testid="stMultiSelect"] div[data-baseweb="tag"] {
-        background: rgba(59,130,246,0.25) !important;
-        border: 1px solid rgba(96,165,250,0.4) !important;
-    }
-    [data-testid="stMultiSelect"] div[data-baseweb="tag"] span {
-        color: #ffffff !important;
     }
 
     /* ── Табы ── */
@@ -618,32 +604,20 @@ def clean_price_vectorized(series: pd.Series) -> pd.Series:
     """
     Векторизованная очистка цен.
     Преобразует Series со строковыми ценами в float. Неверные → NaN.
-
-    Поддерживаемые форматы:
-      - "1 200,50 ₽"    → 1200.50
-      - "1.200,50"      → 1200.50  (европейский формат)
-      - "1,200.50"      → 1200.50  (американский формат)
-      - "$1200"         → 1200.00
-      - "1200 руб"      → 1200.00
     """
-    # Конвертируем в object dtype чтобы избежать PyArrow проблем с regex
     s = series.fillna("").astype(object).astype(str).str.strip()
 
-    # Заменяем Unicode whitespace символы на обычный пробел (regex=False)
-    s = s.str.replace("\u00a0", " ", regex=False)  # non-breaking space
-    s = s.str.replace("\u202f", " ", regex=False)  # narrow no-break space
-    s = s.str.replace("\u2009", " ", regex=False)  # thin space
-    s = s.str.replace("\u200b", "", regex=False)   # zero-width space
+    s = s.str.replace("\u00a0", " ", regex=False)
+    s = s.str.replace("\u202f", " ", regex=False)
+    s = s.str.replace("\u2009", " ", regex=False)
+    s = s.str.replace("\u200b", "", regex=False)
 
-    # Убираем все пробелы
     s = s.str.replace(r"\s+", "", regex=True)
 
-    # Убираем символы валют и буквенные суффиксы
     s = s.str.replace(r"[₽$€£¥₴]", "", regex=True)
     s = s.str.replace(r"руб\.?", "", regex=True, case=False)
     s = s.str.replace(r"RUB|rub", "", regex=True, case=False)
 
-    # Пустые → NaN
     s = s.replace(
         {
             "": np.nan,
@@ -654,38 +628,29 @@ def clean_price_vectorized(series: pd.Series) -> pd.Series:
         }
     )
 
-    # Обработка запятых и точек
     has_comma = s.str.contains(",", na=False)
     has_dot = s.str.contains(r"\.", na=False, regex=True)
 
-    # Случай 1: есть и запятая, и точка → разделитель тот, что правее
     both = has_comma & has_dot
     comma_right = s.str.rfind(",") > s.str.rfind(r"\.")
-    mask1 = both & comma_right  # запятая — десятичный разделитель
-    mask2 = both & ~comma_right  # точка — десятичный разделитель
+    mask1 = both & comma_right
+    mask2 = both & ~comma_right
 
-    # Случай 2: только запятая
     only_comma = has_comma & ~has_dot
-    # Проверяем: если после запятой ≤2 цифр → десятичный разделитель
     decimal_comma = only_comma & s.str.contains(r",\d{1,2}$", na=False, regex=True)
 
-    # Применяем замены
     result = s.copy()
     result[mask1] = result[mask1].str.replace(".", "", regex=False).str.replace(",", ".", regex=False)
     result[mask2] = result[mask2].str.replace(",", "", regex=False)
     result[decimal_comma] = result[decimal_comma].str.replace(",", ".", regex=False)
     result[only_comma & ~decimal_comma] = result[only_comma & ~decimal_comma].str.replace(",", "", regex=False)
 
-    # Преобразуем в numeric
     numeric = pd.to_numeric(result, errors="coerce")
     return numeric.where(numeric > 0, np.nan)
 
 
 def find_header_row(df_raw: pd.DataFrame) -> int:
-    """
-    Поиск строки заголовка в первых 30 строках.
-    Считает score на основе совпадений ключевых слов.
-    """
+    """Поиск строки заголовка в первых 30 строках."""
     best_idx = 0
     best_score = -1
     for i in range(min(30, len(df_raw))):
@@ -715,7 +680,7 @@ def find_header_row(df_raw: pd.DataFrame) -> int:
 
 
 def read_file(uploaded_file) -> Optional[pd.DataFrame]:
-    """Чтение файла (xlsx, xls, csv, ods) в DataFrame с raw-строкami."""
+    """Чтение файла (xlsx, xls, csv, ods) в DataFrame с raw-строками."""
     name = uploaded_file.name.lower()
     try:
         if name.endswith(".csv"):
@@ -746,10 +711,7 @@ def read_file(uploaded_file) -> Optional[pd.DataFrame]:
 def parse_price_file(
     uploaded_file, forced_cols: Optional[dict] = None
 ) -> dict:
-    """
-    Парсинг одного прайс-листа.
-    Возвращает словарь с результатами: статус, сообщение, найденные колонки, очищенные данные.
-    """
+    """Парсинг одного прайс-листа."""
     result = {
         "name": uploaded_file.name,
         "status": "error",
@@ -784,7 +746,6 @@ def parse_price_file(
         result["message"] = "Нет данных после шапки"
         return result
 
-    # ── Определение колонок (с учётом ручных переопределений) ──
     if forced_cols and forced_cols.get("art") and forced_cols.get("art") != "—":
         col_art = forced_cols["art"]
     else:
@@ -811,7 +772,6 @@ def parse_price_file(
         )
         return result
 
-    # Проверка что колонки существуют в DataFrame
     if col_art not in df.columns or col_price not in df.columns:
         result["message"] = (
             f"❌ Колонки не найдены в данных "
@@ -819,17 +779,13 @@ def parse_price_file(
         )
         return result
 
-    # ── ВЕКТОРИЗОВАННАЯ обработка ──
     source = Path(uploaded_file.name).stem
 
-    # Артикул: строка, strip, фильтр мусора
     art_series = df[col_art].fillna("").astype(str).str.strip()
     invalid_art = art_series.isin(["", "nan", "none", "NaN", "None"]) | art_series.isna()
 
-    # Цена: векторизованная очистка
     price_series = clean_price_vectorized(df[col_price])
 
-    # Бренд
     if col_brand and col_brand in df.columns:
         brand_series = df[col_brand].fillna("").astype(str).str.strip()
         brand_series = brand_series.where(
@@ -839,7 +795,6 @@ def parse_price_file(
     else:
         brand_series = pd.Series("—", index=df.index)
 
-    # Сборка валидных строк
     valid_mask = ~invalid_art & price_series.notna()
 
     if valid_mask.sum() == 0:
@@ -866,14 +821,12 @@ def parse_price_file(
 def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     """
     Агрегация: для каждого уникального Артикула оставляем запись с МИНИМАЛЬНОЙ ценой.
-    Сохраняем источник, у которого эта цена, и считаем экономию относительно макс. цены.
     """
     if df_all.empty:
         return pd.DataFrame()
 
     df = df_all.copy()
 
-    # Фильтр битых артикулов
     df = df[
         df["Артикул"].notna()
         & (df["Артикул"].str.strip() != "")
@@ -883,27 +836,28 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
 
-    # Дедупликация: один артикул + один источник = одна запись (мин. цена)
-    df = df.sort_values("Цена").drop_duplicates(subset=["Артикул", "Источник"], keep="first")
-
-    # Нормализация ключа для группировки (без пробелов, регистр)
     df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_\.\,]+", "", regex=True)
+    df = df[df["_key"].str.len() > 0]
 
-    # УНИКАЛЬНЫЕ источники + мин/макс цены
+    if df.empty:
+        return pd.DataFrame()
+
+    qty = df.groupby("_key").size().rename("Количество").reset_index()
+
+    df = df.sort_values("Цена").drop_duplicates(subset=["_key", "Источник"], keep="first")
+
     grp = df.groupby("_key").agg(
         Цена_мин=("Цена", "min"),
         Цена_макс=("Цена", "max"),
         Предложений=("Источник", "nunique"),
     ).reset_index()
 
-    # Индекс минимальной цены (среди всех строк для этого артикула)
     idx_min = df.groupby("_key")["Цена"].idxmin()
     df_best = df.loc[idx_min].copy()
-    df_best = df_best.merge(grp, on="_key", how="left")
+    df_best = df_best.merge(grp, on="_key", how="left").merge(qty, on="_key", how="left")
     df_best = df_best.drop(columns=["_key", "Цена"], errors="ignore")
     df_best = df_best.rename(columns={"Цена_мин": "Цена"})
 
-    # Экономия
     df_best["Экономия_руб"] = (df_best["Цена_макс"] - df_best["Цена"]).round(2)
     df_best["Экономия_%"] = np.where(
         df_best["Цена_макс"] > 0,
@@ -913,7 +867,7 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
 
     cols = [
         "Артикул", "Бренд", "Цена", "Источник",
-        "Предложений", "Цена_макс", "Экономия_руб", "Экономия_%",
+        "Предложений", "Количество", "Цена_макс", "Экономия_руб", "Экономия_%",
     ]
     df_best = df_best[[c for c in cols if c in df_best.columns]]
     df_best = df_best.sort_values("Артикул").reset_index(drop=True)
@@ -972,7 +926,7 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
 
 @st.cache_data(show_spinner=False, ttl=3600)
 def to_csv_bytes(df: pd.DataFrame) -> bytes:
-    """Создание CSV-файла (UTF-8 с BOM, разделитель — точка с запятой). Кэшируется."""
+    """Создание CSV-файла (UTF-8 с BOM, разделитель — точка с запятой)."""
     return df.to_csv(index=False, encoding="utf-8-sig", sep=";").encode("utf-8-sig")
 
 
@@ -996,7 +950,7 @@ if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. САЙДБАР
+# 5. САЙДБАР (СЛЕВА)
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
@@ -1014,10 +968,11 @@ with st.sidebar:
 
     st.markdown('<div class="section-title">📂 Источник данных</div>', unsafe_allow_html=True)
 
-    sim_path = st.text_input(
+    st.text_input(
         "Путь к папке",
         value=r"C:\Прайсы\2026\ или /home/user/prices",
         label_visibility="collapsed",
+        key="sidebar_folder_path",
     )
 
     uploaded_files = st.file_uploader(
@@ -1025,6 +980,7 @@ with st.sidebar:
         type=["xlsx", "xls", "csv", "ods"],
         accept_multiple_files=True,
         help="Загрузите прайс-листы или папку с файлами",
+        key="sidebar_file_uploader",
     )
 
     if uploaded_files:
@@ -1038,9 +994,10 @@ with st.sidebar:
             "▶ Анализ",
             use_container_width=True,
             disabled=not st.session_state.uploaded_objects,
+            key="sidebar_btn_analyze",
         )
     with c_clr:
-        if st.button("✕ Сброс", use_container_width=True):
+        if st.button("✕ Сброс", use_container_width=True, key="sidebar_btn_reset"):
             st.session_state.parsed_results = []
             st.session_state.df_final = pd.DataFrame()
             st.session_state.uploaded_objects = []
@@ -1050,7 +1007,7 @@ with st.sidebar:
     st.markdown('<div class="section-title">⚡ Демо-данные</div>', unsafe_allow_html=True)
     st.caption("Нет собственной папки? Нажмите кнопку для быстрого теста трех прайсов.")
 
-    if st.button("🚀 Загрузить демо-папку", use_container_width=True):
+    if st.button("🚀 Загрузить демо-папку", use_container_width=True, key="sidebar_btn_demo"):
         df_demo1 = pd.DataFrame(
             {
                 "Артикул товара": [
@@ -1184,34 +1141,6 @@ st.markdown(
         сравнит предложения со всех файлов и оставит самую низкую цену с указанием источника.
       </div>
     </div>
-    <button id="pf-open-sidebar" onclick="(function(){var b=document.querySelector('[data-testid=\\'collapsedControl\\'] button'); if(b){b.click(); return;} var h=document.querySelector('header [data-testid=\\'baseButton-header\\']'); if(h){h.click(); return;} var all=document.querySelectorAll('button'); for(var i=0;i<all.length;i++){if(all[i].innerText.includes('>')||all[i].textContent.includes('☰')){all[i].click(); break;}}})()">☰ Открыть панель загрузки</button>
-    <div style="font-size:0.78rem;color:#93c5fd;margin-top:0.4rem;">(если сайдбар скрыт — обновите страницу или нажмите кнопку)</div>
-    <script>
-    (function(){
-      function upd(){
-        var sb=document.querySelector('[data-testid="stSidebar"]');
-        var cc=document.querySelector('[data-testid="collapsedControl"]');
-        var btn=document.getElementById('pf-open-sidebar');
-        if(!btn) return;
-        // если сайдбар виден — прячем резервную кнопку, иначе показываем
-        var sideVisible = sb && getComputedStyle(sb).display!=='none' && sb.getBoundingClientRect().width>50;
-        var ccVisible = cc && getComputedStyle(cc).display!=='none';
-        if(sideVisible){
-          btn.style.display='none';
-        } else {
-          btn.style.display='inline-flex';
-          // если нативная кнопка collapsedControl скрыта — форсим
-          if(cc && !ccVisible){
-            cc.style.display='flex';
-            cc.style.visibility='visible';
-            cc.style.opacity='1';
-          }
-        }
-      }
-      setInterval(upd, 500);
-      setTimeout(upd, 800);
-    })();
-    </script>
     """,
     unsafe_allow_html=True,
 )
@@ -1260,104 +1189,104 @@ if df_final.empty and not st.session_state.parsed_results:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.info(
-        "👈 **Начните работу:** выберите файлы слева или нажмите **«🚀 Загрузить демо-папку»** "
+        "👈 **Начните работу:** выберите файлы слева в сайдбаре или нажмите **«🚀 Загрузить демо-папку»** "
         "для быстрого теста.",
         icon="💡",
     )
+    st.stop()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 8. КАРТОЧКИ ФАЙЛОВ И РУЧНАЯ КОРРЕКЦИЯ КОЛОНОК
 # ─────────────────────────────────────────────────────────────────────────────
-if st.session_state.parsed_results:
-    st.markdown('<div class="section-title">Источники прайс-листов</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Источники прайс-листов</div>', unsafe_allow_html=True)
 
-    for res in st.session_state.parsed_results:
-        icon = (
-            "✅" if res["status"] == "ok"
-            else ("⚠️" if res["status"] == "warning" else "❌")
+for res in st.session_state.parsed_results:
+    icon = (
+        "✅" if res["status"] == "ok"
+        else ("⚠️" if res["status"] == "warning" else "❌")
+    )
+    cls = (
+        "card-ok" if res["status"] == "ok"
+        else ("card-warn" if res["status"] == "warning" else "card-err")
+    )
+    badge = (
+        f'<span class="badge badge-green">OK · {res["row_count"]:,} строк</span>'
+        if res["status"] == "ok"
+        else (
+            '<span class="badge badge-yellow">ВНИМАНИЕ</span>'
+            if res["status"] == "warning"
+            else '<span class="badge badge-red">ОШИБКА</span>'
         )
-        cls = (
-            "card-ok" if res["status"] == "ok"
-            else ("card-warn" if res["status"] == "warning" else "card-err")
-        )
-        badge = (
-            f'<span class="badge badge-green">OK · {res["row_count"]:,} строк</span>'
-            if res["status"] == "ok"
-            else (
-                '<span class="badge badge-yellow">ВНИМАНИЕ</span>'
-                if res["status"] == "warning"
-                else '<span class="badge badge-red">ОШИБКА</span>'
-            )
-        )
-        art_b = f'<span class="badge badge-blue">Арт: {res["col_art"] or "—"}</span>'
-        brand_b = f'<span class="badge badge-blue">Бренд: {res["col_brand"] or "—"}</span>'
-        price_b = f'<span class="badge badge-blue">Цена: {res["col_price"] or "—"}</span>'
+    )
+    art_b = f'<span class="badge badge-blue">Арт: {res["col_art"] or "—"}</span>'
+    brand_b = f'<span class="badge badge-blue">Бренд: {res["col_brand"] or "—"}</span>'
+    price_b = f'<span class="badge badge-blue">Цена: {res["col_price"] or "—"}</span>'
 
-        st.markdown(
-            f"""
-            <div class="card {cls}">
-              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-                <div>
-                  <span style="font-weight:700;color:#f4f4f5">{icon} {res['name']}</span>
-                  &nbsp;{badge}
-                </div>
-                <div style="display:flex;gap:.4rem;flex-wrap:wrap">
-                  {art_b} {brand_b} {price_b}
-                </div>
-              </div>
-              <div style="font-size:0.78rem;color:#bfdbfe;margin-top:.4rem">{res['message']}</div>
+    st.markdown(
+        f"""
+        <div class="card {cls}">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+            <div>
+              <span style="font-weight:700;color:#f4f4f5">{icon} {res['name']}</span>
+              &nbsp;{badge}
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+              {art_b} {brand_b} {price_b}
+            </div>
+          </div>
+          <div style="font-size:0.78rem;color:#bfdbfe;margin-top:.4rem">{res['message']}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-        if res["status"] in ("error", "warning") or not res["col_art"] or not res["col_price"]:
-            with st.expander(f"🔧 Настроить столбцы вручную для «{res['name']}»"):
-                try:
-                    raw_test = None
-                    for uf in st.session_state.uploaded_objects:
-                        if uf.name == res["name"]:
-                            raw_test = read_file(uf)
-                            break
-                    if raw_test is not None:
-                        h_idx = res["header_row"]
-                        headers_list = (
-                            ["—"]
-                            + [
-                                str(x)
-                                for x in raw_test.iloc[h_idx].tolist()
-                                if pd.notna(x)
-                            ]
-                        )
-                    else:
-                        headers_list = ["—"]
-                except Exception:
+    if res["status"] in ("error", "warning") or not res["col_art"] or not res["col_price"]:
+        with st.expander(f"🔧 Настроить столбцы вручную для «{res['name']}»"):
+            try:
+                raw_test = None
+                for uf in st.session_state.uploaded_objects:
+                    if uf.name == res["name"]:
+                        raw_test = read_file(uf)
+                        break
+                if raw_test is not None:
+                    h_idx = res["header_row"]
+                    headers_list = (
+                        ["—"]
+                        + [
+                            str(x)
+                            for x in raw_test.iloc[h_idx].tolist()
+                            if pd.notna(x)
+                        ]
+                    )
+                else:
                     headers_list = ["—"]
+            except Exception:
+                headers_list = ["—"]
 
-                c_a, c_b, c_p = st.columns(3)
-                with c_a:
-                    st.selectbox(
-                        "Столбец: Артикул",
-                        headers_list,
-                        key=f"ovr_art_{res['name']}",
-                    )
-                with c_b:
-                    st.selectbox(
-                        "Столбец: Бренд",
-                        headers_list,
-                        key=f"ovr_brand_{res['name']}",
-                    )
-                with c_p:
-                    st.selectbox(
-                        "Столбец: Цена",
-                        headers_list,
-                        key=f"ovr_price_{res['name']}",
-                    )
-                st.caption(
-                    "После выбора нажмите кнопку **▶ Анализ** в сайдбаре слева повторно."
+            c_a, c_b, c_p = st.columns(3)
+            with c_a:
+                st.selectbox(
+                    "Столбец: Артикул",
+                    headers_list,
+                    key=f"ovr_art_{res['name']}",
                 )
+            with c_b:
+                st.selectbox(
+                    "Столбец: Бренд",
+                    headers_list,
+                    key=f"ovr_brand_{res['name']}",
+                )
+            with c_p:
+                st.selectbox(
+                    "Столбец: Цена",
+                    headers_list,
+                    key=f"ovr_price_{res['name']}",
+                )
+            st.caption(
+                "После выбора нажмите кнопку **▶ Анализ** в сайдбаре слева повторно."
+            )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 9. МЕТРИКИ (KPI DASHBOARD)
@@ -1433,52 +1362,34 @@ if not df_final.empty:
 
         disp_cols = [
             "Артикул", "Бренд", "Цена", "Источник",
-            "Предложений", "Экономия_руб", "Экономия_%",
+            "Предложений", "Количество", "Экономия_руб", "Экономия_%",
         ]
         disp_cols = [c for c in disp_cols if c in df_view.columns]
 
         # ── Экспорт (СВЕРХУ ТАБЛИЦЫ) ──
         st.markdown(
-            '<div class="export-title">💾 СКАЧИВАНИЕ РЕЗУЛЬТАТА</div>',
+            '<div class="section-title" style="margin-top:0.8rem;">💾 Скачивание результата</div>',
             unsafe_allow_html=True,
         )
 
-        # Выбор столбцов для выгрузки — белый шрифт + счётчик
         all_available_cols = df_view.columns.tolist()
-        # Храним выбор в session_state, по умолчанию все
-        if "export_cols" not in st.session_state or not st.session_state.export_cols:
-            st.session_state.export_cols = [c for c in disp_cols if c in all_available_cols]
-
-        # Показываем счётчик выбранных
-        selected_cnt = len(st.session_state.get("export_cols", []))
-        total_cnt = len(all_available_cols)
-        st.markdown(
-            f'<div style="color:#ffffff; font-size:0.85rem; margin-bottom:0.4rem; opacity:0.9;">'
-            f'Выбрано столбцов: <b>{selected_cnt}</b> из {total_cnt} &nbsp;·&nbsp; Количество строк: <b>{len(df_view):,}</b>'
-            f'</div>',
-            unsafe_allow_html=True
-        )
-
         export_cols = st.multiselect(
             "Выберите столбцы для выгрузки",
             options=all_available_cols,
-            default=st.session_state.export_cols,
-            key="export_cols_widget",
+            default=[c for c in disp_cols if c in all_available_cols],
             help="Укажите, какие именно колонки должны попасть в итоговый Excel и CSV файл."
         )
-        # Синхронизируем с session_state
-        if export_cols:
-            st.session_state.export_cols = export_cols
+        if not export_cols:
+            export_cols = [c for c in ["Артикул", "Цена", "Источник"] if c in all_available_cols]
+            st.caption("⚠️ Не выбрано ни одного столбца — будет выгружен базовый набор: Артикул, Цена, Источник.")
         else:
-            export_cols = [c for c in disp_cols if c in all_available_cols]
-            st.warning("Выберите хотя бы один столбец — используется набор по умолчанию.")
+            st.caption(f"📊 В файл попадёт столбцов: {len(export_cols)}")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         n_rows = len(df_view)
         export_status = st.empty()
         export_progress = st.empty()
 
-        # Индикатор загрузки при формировании файлов
         export_status.markdown(
             f"""
             <div style="
@@ -1497,7 +1408,7 @@ if not df_final.empty:
                   Формирование файлов для экспорта…
                 </div>
                 <div style="color:#93c5fd;font-size:0.78rem;margin-top:0.15rem;">
-                  Обрабатываем {n_rows:,} строк · {len(export_cols)} столбцов · Excel + CSV
+                  Обрабатываем {n_rows:,} строк · Excel + CSV
                 </div>
               </div>
             </div>
@@ -1508,15 +1419,11 @@ if not df_final.empty:
 
         prog.progress(25, text="Формирование Excel (.xlsx)…")
         with st.spinner("⏳ Создаём Excel-файл…"):
-            # Защита от пустого выбора
-            cols_for_export = [c for c in export_cols if c in df_view.columns]
-            if not cols_for_export:
-                cols_for_export = [c for c in disp_cols if c in df_view.columns]
-            excel_bytes = to_excel_bytes(df_view[cols_for_export])
+            excel_bytes = to_excel_bytes(df_view[export_cols])
 
         prog.progress(70, text="Формирование CSV (.csv)…")
         with st.spinner("⏳ Создаём CSV-файл…"):
-            csv_bytes = to_csv_bytes(df_view[cols_for_export])
+            csv_bytes = to_csv_bytes(df_view[export_cols])
 
         prog.progress(100, text="Готово!")
         excel_size = format_file_size(len(excel_bytes))
@@ -1544,7 +1451,7 @@ if not df_final.empty:
                     Файлы готовы к скачиванию
                   </div>
                   <div style="color:#93c5fd;font-size:0.75rem;margin-top:0.1rem;">
-                    {n_rows:,} строк · {len(cols_for_export)} столбцов · Excel {excel_size} · CSV {csv_size}
+                    {n_rows:,} строк · Excel {excel_size} · CSV {csv_size}
                   </div>
                 </div>
               </div>
@@ -1575,7 +1482,6 @@ if not df_final.empty:
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── ТАБЛИЦА ПРЕДВАРИТЕЛЬНОГО ПРОСМОТРА ──
         st.dataframe(
             df_view[disp_cols],
             use_container_width=True,
@@ -1589,6 +1495,10 @@ if not df_final.empty:
                 "Предложений": st.column_config.NumberColumn(
                     "📊 Источников", width="small",
                     help="Кол-во уникальных поставщиков",
+                ),
+                "Количество": st.column_config.NumberColumn(
+                    "🔢 Кол-во строк", width="small",
+                    help="Всего строк с этим артикулом во всех загруженных прайсах (включая дубли)",
                 ),
                 "Экономия_руб": st.column_config.NumberColumn("💚 Экономия (₽)", format="%.2f ₽", width="small"),
                 "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
