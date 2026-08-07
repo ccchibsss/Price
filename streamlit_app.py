@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from datetime import datetime
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # 0. КОНФИГУРАЦИЯ СТРАНИЦЫ (СТРОГО ПЕРВАЯ СТРИМЛИТ КОМАНДА)
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -22,25 +22,25 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. СТИЛИЗАЦИЯ (ПРЕМИУМ ТЁМНЫЙ UI С ГРАДИЕНТАМИ И СТЕКЛОМ)
+# 1. СТИЛИЗАЦИЯ (ПРИЯТНАЯ СИНИЯ ТЕМА)
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
     /* ── Общий фон и шрифт ── */
     .stApp {
-        background: #070709;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%);
         color: #f4f4f5;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* ── Сайдбар ── */
+    /* ─ Сайдбар ── */
     [data-testid="stSidebar"] {
-        background: #0e0e12 !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
+        background: linear-gradient(180deg, #1a3352 0%, #234567 100%) !important;
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
     [data-testid="stSidebar"] * {
-        color: #d4d4d8 !important;
+        color: #e0e7ff !important;
     }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
@@ -48,7 +48,7 @@ st.markdown(
 
     /* ── Кнопки управления ── */
     .stButton > button {
-        background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -57,18 +57,18 @@ st.markdown(
         font-size: 0.85rem;
         letter-spacing: 0.02em;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
         width: 100%;
     }
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
-        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6);
+        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
     }
 
     /* ── Кнопки скачивания ── */
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         border: none;
         border-radius: 12px;
@@ -76,25 +76,25 @@ st.markdown(
         font-weight: 600;
         font-size: 0.85rem;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
         width: 100%;
     }
     .stDownloadButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
+        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6);
     }
 
     /* ── Загрузчик файлов ── */
     [data-testid="stFileUploader"] {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1.5px dashed rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px dashed rgba(255, 255, 255, 0.2);
         border-radius: 16px;
         padding: 1.2rem;
         transition: all 0.2s;
     }
     [data-testid="stFileUploader"]:hover {
-        border-color: rgba(139, 92, 246, 0.5);
-        background: rgba(139, 92, 246, 0.03);
+        border-color: rgba(96, 165, 250, 0.6);
+        background: rgba(96, 165, 250, 0.05);
     }
     [data-testid="stFileUploadDropzone"] {
         background: transparent !important;
@@ -102,8 +102,8 @@ st.markdown(
 
     /* ── Метрики ── */
     [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 16px;
         padding: 1.1rem 1.3rem;
         backdrop-filter: blur(10px);
@@ -118,20 +118,20 @@ st.markdown(
         font-size: 0.72rem !important;
         text-transform: uppercase;
         letter-spacing: 0.12em;
-        color: #71717a !important;
+        color: #93c5fd !important;
     }
 
     /* ── Карточки файлов ── */
     .card {
-        background: rgba(255, 255, 255, 0.025);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 16px;
         padding: 1.2rem 1.4rem;
         margin-bottom: 0.75rem;
         backdrop-filter: blur(10px);
         transition: border-color 0.2s;
     }
-    .card:hover { border-color: rgba(255, 255, 255, 0.15); }
+    .card:hover { border-color: rgba(96, 165, 250, 0.4); }
     .card-ok   { border-left: 3px solid #10b981; }
     .card-warn { border-left: 3px solid #f59e0b; }
     .card-err  { border-left: 3px solid #ef4444; }
@@ -145,23 +145,23 @@ st.markdown(
         font-weight: 600;
         letter-spacing: 0.06em;
     }
-    .badge-green  { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-red    { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .badge-yellow { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .badge-blue   { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .badge-green  { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-red    { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-yellow { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-blue   { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
 
     /* ── Заголовки и текст ── */
     .hero-title {
         font-size: 2.8rem;
         font-weight: 800;
-        background: linear-gradient(135deg, #ffffff 30%, #a78bfa 70%, #38bdf8 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #bfdbfe 50%, #93c5fd 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         line-height: 1.15;
         letter-spacing: -0.03em;
     }
     .hero-sub {
-        color: #a1a1aa;
+        color: #bfdbfe;
         font-size: 1rem;
         margin-top: 0.5rem;
         line-height: 1.6;
@@ -172,14 +172,14 @@ st.markdown(
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.18em;
-        color: #71717a;
+        color: #93c5fd;
         margin-bottom: 0.8rem;
     }
 
     /* ── Шаги / Онбординг ── */
     .step-box {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
         padding: 1.5rem;
         text-align: left;
@@ -187,60 +187,58 @@ st.markdown(
         transition: all 0.2s;
     }
     .step-box:hover {
-        border-color: rgba(139, 92, 246, 0.3);
+        border-color: rgba(96, 165, 250, 0.4);
         transform: translateY(-2px);
     }
     .step-num {
         width: 42px; height: 42px;
         border-radius: 12px;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(79, 70, 229, 0.2));
-        border: 1px solid rgba(139, 92, 246, 0.4);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.3));
+        border: 1px solid rgba(96, 165, 250, 0.5);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 1.05rem;
         font-weight: 800;
-        color: #c4b5fd;
+        color: #bfdbfe;
         margin-bottom: 0.9rem;
     }
 
-    /* ── Инпуты, селекты, текстовые поля и выпадающие списки (Тёмный фон + белые буквы) ── */
+    /* ── Инпуты, селекты, текстовые поля ── */
     input, select, .stSelectbox > div > div, .stTextInput > div > div > input, [data-testid="stTextInputRootElement"] input {
-        background: #121217 !important;
-        background-color: #121217 !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: #1e3a5f !important;
+        background-color: #1e3a5f !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         color: #ffffff !important;
         border-radius: 12px !important;
     }
     .stSelectbox > div > div:focus-within,
     .stTextInput > div > div > input:focus,
     [data-testid="stTextInputRootElement"]:focus-within {
-        border-color: #8b5cf6 !important;
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+        border-color: #60a5fa !important;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
     }
     
-    /* Заголовки, лейблы и плейсхолдеры внутри инпутов */
     input::placeholder, .stTextInput input::placeholder, [data-testid="stTextInputRootElement"] input::placeholder {
-        color: #a1a1aa !important;
+        color: #93c5fd !important;
         opacity: 0.85 !important;
     }
     
-    /* Стилизация выпадающих селекторов в Streamlit */
     div[data-baseweb="select"] > div {
-        background-color: #121217 !important;
+        background-color: #1e3a5f !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 12px !important;
     }
     div[data-baseweb="select"] * {
         color: #ffffff !important;
     }
     
-    /* ── Стилизация File Uploader (Полностью тёмная тема + белые/светлые буквы) ── */
+    /* ── File Uploader ── */
     [data-testid="stFileUploader"] {
-        background-color: #121217 !important;
-        background: #121217 !important;
-        border: 2px dashed rgba(255, 255, 255, 0.15) !important;
+        background-color: #1e3a5f !important;
+        background: #1e3a5f !important;
+        border: 2px dashed rgba(255, 255, 255, 0.2) !important;
         border-radius: 16px !important;
     }
     [data-testid="stFileUploader"] *, 
@@ -250,31 +248,30 @@ st.markdown(
         color: #f4f4f5 !important;
     }
     [data-testid="stFileUploader"] button {
-        background-color: #1f1f2e !important;
+        background-color: #2d5a87 !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 10px !important;
         font-weight: 600 !important;
         transition: background 0.2s !important;
     }
     [data-testid="stFileUploader"] button:hover {
-        background-color: #2e2e3f !important;
-        border-color: #8b5cf6 !important;
+        background-color: #3d7ab5 !important;
+        border-color: #60a5fa !important;
     }
     
-    /* Подсветка подсказки скрепки и названия файлов в тёмной теме */
     [data-testid="stFileUploader"] svg {
-        fill: #a78bfa !important;
-        color: #a78bfa !important;
+        fill: #93c5fd !important;
+        color: #93c5fd !important;
     }
 
     /* ── Табы ── */
     [data-testid="stTabs"] > div:first-child {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     button[data-baseweb="tab"] {
         background: transparent !important;
-        color: #71717a !important;
+        color: #93c5fd !important;
         font-weight: 600;
         font-size: 0.85rem;
         padding: 0.7rem 1.4rem !important;
@@ -282,22 +279,29 @@ st.markdown(
         transition: all 0.2s;
     }
     button[data-baseweb="tab"]:hover {
-        color: #c4b5fd !important;
-        background: rgba(255, 255, 255, 0.02) !important;
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.05) !important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #c4b5fd !important;
-        border-bottom: 2px solid #8b5cf6 !important;
-        background: rgba(139, 92, 246, 0.08) !important;
+        color: #ffffff !important;
+        border-bottom: 2px solid #60a5fa !important;
+        background: rgba(96, 165, 250, 0.15) !important;
     }
 
-    hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); margin: 1.5rem 0; }
+    hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1.5rem 0; }
     
     /* ── Скроллбар ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #070709; }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.5); }
+    ::-webkit-scrollbar-track { background: #1e3a5f; }
+    ::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.5); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(147, 197, 253, 0.7); }
+    
+    /* ── DataFrame таблица ── */
+    div[data-testid="stDataFrame"] {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -442,7 +446,6 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
         result["message"] = "Нет данных после шапки"
         return result
 
-    # Автоопределение или принудительный ручной выбор
     if forced_cols and forced_cols.get("art") and forced_cols.get("art") != "—":
         col_art = forced_cols["art"]
     else:
@@ -504,7 +507,6 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
 
 def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     df = df_all.copy()
-    # Нормализуем артикул (без пробелов, верхний регистр)
     df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_]", "", regex=True)
 
     grp = df.groupby("_key")["Цена"].agg(
@@ -539,10 +541,10 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
         from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
         from openpyxl.utils import get_column_letter
 
-        header_fill = PatternFill("solid", fgColor="18181b")
-        header_font = Font(bold=True, color="C4B5FD", size=10)
-        thin_border = Border(bottom=Side(style="thin", color="27272a"))
-        price_font = Font(bold=True, color="34D399", size=11)
+        header_fill = PatternFill("solid", fgColor="1e3a5f")
+        header_font = Font(bold=True, color="93c5fd", size=10)
+        thin_border = Border(bottom=Side(style="thin", color="2d5a87"))
+        price_font = Font(bold=True, color="6ee7b7", size=11)
 
         price_col_idx = None
         for i, col in enumerate(df.columns, 1):
@@ -589,25 +591,24 @@ if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. САЙДБАР (ДИЗАЙН В СТИЛЕ ВАРИАНТА А)
+# 5. САЙДБАР
 # ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
         """
-        <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0 1.5rem;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.5rem;">
-          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 15px rgba(124,58,237,0.4)">⚡</div>
+        <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:1.5rem;">
+          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 15px rgba(59,130,246,0.5)">⚡</div>
           <div>
             <div style="font-weight:700;font-size:1rem;color:#fff;letter-spacing:-0.01em">PRICE.FUSION</div>
-            <div style="font-size:0.65rem;color:#71717a;font-family:monospace;letter-spacing:0.1em">MONOLITH STREAMLIT</div>
+            <div style="font-size:0.65rem;color:#93c5fd;font-family:monospace;letter-spacing:0.1em">MONOLITH STREAMLIT</div>
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="section-title">📂 Источник данных</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title"> Источник данных</div>', unsafe_allow_html=True)
     
-    # Виртуальный путь для соответствия референсу Варианта А
     sim_path = st.text_input("Путь к папке", value=r"C:\Прайсы\2026\ или /home/user/prices", label_visibility="collapsed")
 
     uploaded_files = st.file_uploader(
@@ -637,7 +638,6 @@ with st.sidebar:
     st.caption("Нет собственной папки? Нажмите кнопку для быстрого теста трех прайсов.")
     
     if st.button("🚀 Загрузить демо-папку", use_container_width=True):
-        # Создаем демо-файлы в памяти с пересекающимися артикулами
         df_demo1 = pd.DataFrame({
             "Артикул товара": ["IP15-128-BLK", "IP15-256-WHT", "SAM-S24-256", "XIA-14-512", "SONY-XM5", "MAC-AIR-M3"],
             "Производитель": ["Apple", "Apple", "Samsung", "Xiaomi", "Sony", "Apple"],
@@ -646,12 +646,12 @@ with st.sidebar:
         df_demo2 = pd.DataFrame({
             "Код SKU": ["IP15-128-BLK", "IP15-256-WHT", "SAM-S24-256", "XIA-14-512", "SONY-XM5", "DYSON-HS05"],
             "Бренд": ["Apple LLC", "Apple", "Samsung Group", "Xiaomi Corp", "Sony", "Dyson"],
-            "Опт цена": [76500, 91200, 67800, 56900, 32900, 47900] # Здесь дешевле IP15-128, SAM-S24, SONY-XM5
+            "Опт цена": [76500, 91200, 67800, 56900, 32900, 47900]
         })
         df_demo3 = pd.DataFrame({
             "Артикул": ["IP15-128-BLK", "IP15-256-WHT", "SAM-S24-256", "XIA-14-512", "MAC-AIR-M3", "PS5-SLIM"],
             "Бренд": ["Apple", "Apple", "Samsung", "Xiaomi", "Apple Store", "Sony"],
-            "Цена со скидкой": [79000, 88500, 71000, 52900, 139000, 48900] # Здесь дешевле IP15-256, XIA-14, MAC-AIR
+            "Цена со скидкой": [79000, 88500, 71000, 52900, 139000, 48900]
         })
 
         def df_to_uploaded(df, filename):
@@ -690,7 +690,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown(
         """
-        <div style="font-size:0.72rem;color:#71717a;line-height:1.6">
+        <div style="font-size:0.72rem;color:#93c5fd;line-height:1.6">
           <b>Автоматический поиск:</b><br>
           • Артикул / SKU / Код<br>
           • Бренд / Производитель<br>
@@ -700,9 +700,12 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # 6. ОБРАБОТКА ПО КНОПКЕ АНАЛИЗ
 # ─────────────────────────────────────────────────────────────────────────────
+if 'btn_analyze' not in locals():
+    btn_analyze = False
+
 if btn_analyze and st.session_state.uploaded_objects:
     results = []
     all_frames = []
@@ -751,7 +754,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Если ничего не загружено — показываем стильный онбординг (как в Варианте А)
 if df_final.empty and not st.session_state.parsed_results:
     c1, c2, c3 = st.columns(3)
     with c1:
@@ -760,7 +762,7 @@ if df_final.empty and not st.session_state.parsed_results:
             <div class="step-box">
               <div class="step-num">01</div>
               <div style="font-weight:700;color:#f4f4f5;margin-bottom:.4rem;font-size:0.95rem">Авто-поиск шапки</div>
-              <div style="font-size:0.8rem;color:#a1a1aa;line-height:1.6">
+              <div style="font-size:0.8rem;color:#bfdbfe;line-height:1.6">
                 Ищем строку, где встречаются ключевые слова в первых 20 строках, даже в самых грязных прайсах.
               </div>
             </div>
@@ -773,7 +775,7 @@ if df_final.empty and not st.session_state.parsed_results:
             <div class="step-box">
               <div class="step-num">02</div>
               <div style="font-weight:700;color:#f4f4f5;margin-bottom:.4rem;font-size:0.95rem">Нормализация</div>
-              <div style="font-size:0.8rem;color:#a1a1aa;line-height:1.6">
+              <div style="font-size:0.8rem;color:#bfdbfe;line-height:1.6">
                 Артикулы приводим к верхнему регистру без пробелов, цены парсим из любого формата 1 200,50 ₽.
               </div>
             </div>
@@ -786,7 +788,7 @@ if df_final.empty and not st.session_state.parsed_results:
             <div class="step-box">
               <div class="step-num">03</div>
               <div style="font-weight:700;color:#f4f4f5;margin-bottom:.4rem;font-size:0.95rem">Выбор минимума</div>
-              <div style="font-size:0.8rem;color:#a1a1aa;line-height:1.6">
+              <div style="font-size:0.8rem;color:#bfdbfe;line-height:1.6">
                 Группируем по Артикул + Бренд и оставляем только запись с минимальной ценой и источником.
               </div>
             </div>
@@ -795,7 +797,7 @@ if df_final.empty and not st.session_state.parsed_results:
         )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.info("👈 **Начните работу:** выберите файлы слева или нажмите **«🚀 Загрузить демо-папку»** для быстрого теста.", icon="💡")
+    st.info("👈 **Начните работу:** выберите файлы слева или нажмите **« Загрузить демо-папку»** для быстрого теста.", icon="💡")
     st.stop()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -831,13 +833,12 @@ for res in st.session_state.parsed_results:
               {art_b} {brand_b} {price_b}
             </div>
           </div>
-          <div style="font-size:0.78rem;color:#a1a1aa;margin-top:.4rem">{res['message']}</div>
+          <div style="font-size:0.78rem;color:#bfdbfe;margin-top:.4rem">{res['message']}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Ручное переопределение колонок при необходимости
     if res["status"] in ("error", "warning") or not res["col_art"] or not res["col_price"]:
         with st.expander(f"🔧 Настроить столбцы вручную для «{res['name']}»"):
             try:
@@ -877,25 +878,25 @@ if not df_final.empty:
     avg_price = df_final["Цена"].mean()
 
     m1, m2, m3, m4 = st.columns(4)
-    m1.metric("🔑 Уникальных SKU", f"{total_unique:,}")
+    m1.metric(" Уникальных SKU", f"{total_unique:,}")
     m2.metric("📋 Всего предложений", f"{int(total_offers):,}")
     m3.metric("💰 Средняя мин. цена", f"{avg_price:,.0f} ₽")
     m4.metric("📉 Суммарная экономия", f"{total_savings:,.0f} ₽", delta="Лучшие цены со всех прайсов")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # 10. ТАБЛИЦА РЕЗУЛЬТАТОВ, АНАЛИЗ И ЭКСПОРТ
 # ─────────────────────────────────────────────────────────────────────────────
 if not df_final.empty:
     
     tab_table, tab_analysis, tab_sources = st.tabs([
-        "📋 Итоговый прайс", "📈 Анализ и графики", "🏢 По источникам"
+        "📋 Итоговый прайс", "📈 Анализ и графики", " По источникам"
     ])
 
     # ── TAB 1: ТАБЛИЦА ──
     with tab_table:
-        st.markdown('<div class="section-title">🏆 Итоговый прайс (минимальная цена + источник)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"> Итоговый прайс (минимальная цена + источник)</div>', unsafe_allow_html=True)
 
         f_col1, f_col2, f_col3 = st.columns([3, 2, 2])
         with f_col1:
@@ -923,7 +924,6 @@ if not df_final.empty:
         disp_cols = ["Артикул", "Бренд", "Цена", "Источник", "Предложений", "Экономия_руб", "Экономия_%"]
         disp_cols = [c for c in disp_cols if c in df_view.columns]
 
-        # ИСПРАВЛЕНИЕ 1: Удален .style.format(), форматирование полностью делегировано column_config
         st.dataframe(
             df_view[disp_cols],
             use_container_width=True,
@@ -982,7 +982,7 @@ if not df_final.empty:
                 "Диапазон": [str(i.mid.round(0)) for i in hist.index],
                 "Кол-во": hist.values,
             })
-            st.bar_chart(hist_df.set_index("Диапазон"), color="#8b5cf6", height=300)
+            st.bar_chart(hist_df.set_index("Диапазон"), color="#60a5fa", height=300)
 
         with gc2:
             st.markdown("**Топ-10 брендов по числу SKU**")
@@ -990,9 +990,9 @@ if not df_final.empty:
             top_brands.columns = ["Бренд", "Артикулов"]
             st.bar_chart(top_brands.set_index("Бренд"), color="#34d399", height=300)
 
-    # ── TAB 3: ПО ИСТОЧНИКАМ ──
+    # ─ TAB 3: ПО ИСТОЧНИКАМ ──
     with tab_sources:
-        st.markdown('<div class="section-title">🏢 Статистика по источникам (поставщикам)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title"> Статистика по источникам (поставщикам)</div>', unsafe_allow_html=True)
 
         src_stats = df_final.groupby("Источник").agg(
             Побед=("Источник", "count"),
@@ -1002,7 +1002,6 @@ if not df_final.empty:
             Экономия=("Экономия_руб", "sum"),
         ).round(2).sort_values("Побед", ascending=False).reset_index()
 
-        # ИСПРАВЛЕНИЕ 2: Удален .style.format(), форматирование полностью делегировано column_config
         st.dataframe(
             src_stats,
             use_container_width=True,
@@ -1025,7 +1024,7 @@ st.markdown("<br><br>", unsafe_allow_html=True)
 st.markdown(
     """
     <hr>
-    <div style="text-align:center;font-size:0.75rem;color:#71717a;padding:1rem 0">
+    <div style="text-align:center;font-size:0.75rem;color:#93c5fd;padding:1rem 0">
       ⚡ <b>Price.Fusion</b> &nbsp;·&nbsp; Монолитный Streamlit App &nbsp;·&nbsp; Все функции и стили в одном файле <code>app.py</code>
     </div>
     """,
