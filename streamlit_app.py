@@ -20,7 +20,7 @@ st.set_page_config(
     page_title="Price.Fusion — Агрегатор прайсов",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="expanded",
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -949,10 +949,10 @@ if "df_final" not in st.session_state:
 if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
-# ═════════════════════════════════════════════════════════════════════════════
-# 5. ПАНЕЛЬ УПРАВЛЕНИЯ (в основном контенте — видна всегда)
-# ═════════════════════════════════════════════════════════════════════════════
-with st.container():
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. САЙДБАР (слева)
+# ─────────────────────────────────────────────────────────────────────────────
+with st.sidebar:
     st.markdown(
         """
         <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:1.5rem;">
@@ -1087,6 +1087,9 @@ with st.container():
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. ОБРАБОТКА ПО КНОПКЕ АНАЛИЗ
 # ─────────────────────────────────────────────────────────────────────────────
+if "btn_analyze" not in locals():
+    btn_analyze = False
+
 if btn_analyze and st.session_state.uploaded_objects:
     results = []
     all_frames = []
@@ -1131,24 +1134,16 @@ df_final: pd.DataFrame = st.session_state.df_final
 
 st.markdown(
     """
-    <div style="padding: 1.5rem 0 1.2rem; display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-      <div>
-        <div class="hero-title">Price.Fusion · Агрегатор цен</div>
-        <div class="hero-sub">
-          Загрузите папку с прайсами. Система сама найдёт <b>Артикул / Бренд / Цену</b>,
-          сравнит предложения со всех файлов и оставит самую низкую цену с указанием источника.
-        </div>
+    <div style="padding: 1.5rem 0 1.2rem;">
+      <div class="hero-title">Price.Fusion · Агрегатор цен</div>
+      <div class="hero-sub">
+        Загрузите папку с прайсами. Система сама найдёт <b>Артикул / Бренд / Цену</b>,
+        сравнит предложения со всех файлов и оставит самую низкую цену с указанием источника.
       </div>
-    </div>
-    <div style="margin-bottom:0.8rem;">
-      <a href="#" onclick="window.location.reload(); return false;" style="background:#0f2440;border:1.5px solid #60a5fa;color:#fff;padding:.45rem .9rem;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 4px 15px rgba(96,165,250,.3);cursor:pointer;">
-        <span style="font-size:1.1rem;">☰</span> Открыть панель загрузки
-      </a>
-      <span style="font-size:.75rem;color:#93c5fd;margin-left:.5rem;">(если сайдбар скрыт — обновите страницу или нажмите кнопку)</span>
     </div>
     """,
     unsafe_allow_html=True,
-  )
+)
 
 if df_final.empty and not st.session_state.parsed_results:
     c1, c2, c3 = st.columns(3)
