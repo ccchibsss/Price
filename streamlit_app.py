@@ -77,6 +77,14 @@ st.markdown(
         opacity: 0.5 !important;
         cursor: not-allowed !important;
     }
+    /* значок ▶ в тёмных сайдбар-кнопках — яркий, не сливается */
+    .stButton > button {
+        color: #ffffff !important;
+    }
+    .stButton > button b,
+    .stButton > button span:first-child {
+        color: #7dd3fc !important;
+    }
 
     /* ── Кнопки скачивания (ТЁМНО-ЗЕЛЁНЫЕ) ── */
     .stDownloadButton > button {
