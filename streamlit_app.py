@@ -207,15 +207,47 @@ st.markdown(
     /* ── Инпуты и селекты ── */
     .stSelectbox > div > div,
     .stTextInput > div > div > input {
-        background: rgba(255, 255, 255, 0.04) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        color: #f4f4f5 !important;
+        background: #16161b !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #ffffff !important;
         border-radius: 12px !important;
     }
     .stSelectbox > div > div:focus-within,
     .stTextInput > div > div > input:focus {
         border-color: #8b5cf6 !important;
         box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
+    }
+    
+    /* Исправление видимости шрифтов при белом/светлом фоне в Streamlit (Light Mode) */
+    input, .stTextInput input, [data-testid="stTextInputRootElement"] input {
+        color: #1e293b !important;
+        background-color: #ffffff !important;
+    }
+    input::placeholder, .stTextInput input::placeholder {
+        color: #64748b !important;
+        opacity: 0.9 !important;
+    }
+    
+    /* Исправление фона и цвета шрифтов внутри File Uploader при белом/светлом фоне */
+    [data-testid="stFileUploader"] {
+        background-color: #ffffff !important;
+        border: 2px dashed #cbd5e1 !important;
+    }
+    [data-testid="stFileUploader"] *, [data-testid="stFileUploader"] span, [data-testid="stFileUploader"] p {
+        color: #0f172a !important;
+    }
+    [data-testid="stFileUploader"] button {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    [data-testid="stFileUploader"] button:hover {
+        background-color: #e2e8f0 !important;
+    }
+    
+    /* Подсветка подсказки скрепки и названия файлов */
+    [data-testid="stFileUploader"] svg {
+        fill: #4f46e5 !important;
     }
 
     /* ── Табы ── */
