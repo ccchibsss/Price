@@ -126,6 +126,35 @@ st.markdown(
     [data-testid="stFileUploadDropzone"] small {
         color: #9db8d8 !important;
     }
+    /* карточки загруженных файлов (список под дропзоной) */
+    [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploaderFile"] > div,
+    [data-testid="stFileUploader"] ul,
+    [data-testid="stFileUploader"] ul li,
+    [data-testid="stFileUploader"] ul li > div {
+        background: rgba(15, 36, 64, 0.9) !important;
+        background-color: rgba(15, 36, 64, 0.9) !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stFileUploaderFile"] {
+        border: 1px solid rgba(96, 165, 250, 0.25) !important;
+        margin-bottom: 0.3rem !important;
+    }
+    [data-testid="stFileUploaderFile"] *,
+    [data-testid="stFileUploaderFileName"],
+    [data-testid="stFileUploaderFileData"] small {
+        color: #e8eefc !important;
+    }
+    [data-testid="stFileUploaderDeleteBtn"] button,
+    [data-testid="stFileUploaderFile"] button {
+        background: transparent !important;
+        border: none !important;
+    }
+    [data-testid="stFileUploaderDeleteBtn"] svg,
+    [data-testid="stFileUploaderFile"] button svg {
+        fill: #93c5fd !important;
+        color: #93c5fd !important;
+    }
     [data-testid="stFileUploader"] *,
     [data-testid="stFileUploader"] span,
     [data-testid="stFileUploader"] p,
