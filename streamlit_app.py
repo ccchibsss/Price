@@ -100,15 +100,15 @@ st.markdown(
 
     /* ── Загрузчик файлов ── */
     [data-testid="stFileUploader"] {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 2px dashed rgba(255, 255, 255, 0.2) !important;
+        background: rgba(15, 36, 64, 0.85) !important;
+        border: 2px dashed rgba(56, 189, 248, 0.45) !important;
         border-radius: 16px !important;
         padding: 1.2rem !important;
         transition: all 0.2s;
     }
     [data-testid="stFileUploader"]:hover {
-        border-color: rgba(96, 165, 250, 0.6) !important;
-        background: rgba(96, 165, 250, 0.05) !important;
+        border-color: rgba(56, 189, 248, 0.8) !important;
+        background: rgba(15, 36, 64, 0.95) !important;
     }
     [data-testid="stFileUploadDropzone"] {
         background: transparent !important;
@@ -116,82 +116,24 @@ st.markdown(
     [data-testid="stFileUploader"] *,
     [data-testid="stFileUploader"] span,
     [data-testid="stFileUploader"] p,
-    [data-testid="stFileUploader"] label {
-        color: #f4f4f5 !important;
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] div {
+        color: #e8eefc !important;
     }
     [data-testid="stFileUploader"] button {
         background-color: #0f2440 !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(56, 189, 248, 0.45) !important;
         border-radius: 10px !important;
         font-weight: 600 !important;
     }
     [data-testid="stFileUploader"] button:hover {
         background-color: #1e3a5f !important;
-        border-color: #60a5fa !important;
+        border-color: #38bdf8 !important;
     }
     [data-testid="stFileUploader"] svg {
-        fill: #93c5fd !important;
-        color: #93c5fd !important;
-    }
-    /* ── ФИКС: белый фон списка загруженных файлов ── */
-    [data-testid="stFileUploader"] section,
-    [data-testid="stFileUploader"] > div,
-    [data-testid="stFileUploader"] > div > div,
-    [data-testid="stFileUploader"] ul {
-        background: transparent !important;
-        background-color: transparent !important;
-    }
-    /* Белая карточка вокруг списка файлов (как на скрине) */
-    [data-testid="stFileUploader"] > div > div:has(ul),
-    [data-testid="stFileUploader"] section + div {
-        background: rgba(15, 36, 64, 0.55) !important;
-        background-color: rgba(15, 36, 64, 0.55) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-        border-radius: 12px !important;
-        padding: 0.75rem !important;
-    }
-    /* Каждый файл в списке */
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"],
-    [data-testid="stFileUploader"] li,
-    [data-testid="stFileUploader"] li[data-testid="stFileUploaderFile"] {
-        background: rgba(30, 58, 95, 0.9) !important;
-        background-color: rgba(30, 58, 95, 0.9) !important;
-        border: 1px solid rgba(147, 197, 253, 0.25) !important;
-        border-radius: 12px !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] * {
-        color: #f4f4f5 !important;
-    }
-    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] small {
-        color: #93c5fd !important;
-    }
-    /* Ловим инлайновые белые фоны Streamlit */
-    [data-testid="stFileUploader"] div[style*="background-color: rgb(255"],
-    [data-testid="stFileUploader"] div[style*="background-color: #fff"],
-    [data-testid="stFileUploader"] div[style*="background: rgb(255"],
-    [data-testid="stFileUploader"] div[style*="background: #fff"],
-    [data-testid="stFileUploader"] [style*="255, 255"],
-    [data-testid="stFileUploader"] [style*="255,255"],
-    [data-testid="stFileUploader"] div[style*="240, 242"],
-    [data-testid="stFileUploader"] div[style*="242, 246"],
-    [data-testid="stFileUploader"] [style*="f0f2f6"],
-    [data-testid="stFileUploader"] [style*="F0F2F6"],
-    [data-testid="stFileUploader"] [style*="ffffff"],
-    [data-testid="stFileUploader"] [style*="FFFFFF"] {
-        background: rgba(15, 36, 64, 0.6) !important;
-        background-color: rgba(15, 36, 64, 0.6) !important;
-        border: 1px solid rgba(255,255,255,0.08) !important;
-    }
-    /* Принудительно тёмный фон для любого светлого контейнера внутри */
-    [data-testid="stFileUploader"] > div > div > div {
-        background: rgba(15, 36, 64, 0.45) !important;
-        background-color: rgba(15, 36, 64, 0.45) !important;
-    }
-    /* Иконка файла */
-    [data-testid="stFileUploaderFile"] svg {
-        fill: #bfdbfe !important;
-        color: #bfdbfe !important;
+        fill: #7dd3fc !important;
+        color: #7dd3fc !important;
     }
 
     /* ── Метрики ── */
@@ -1291,6 +1233,15 @@ if not df_final.empty:
             unsafe_allow_html=True,
         )
 
+        # Выбор столбцов для выгрузки
+        all_available_cols = df_view.columns.tolist()
+        export_cols = st.multiselect(
+            "Выберите столбцы для выгрузки",
+            options=all_available_cols,
+            default=[c for c in disp_cols if c in all_available_cols],
+            help="Укажите, какие именно колонки должны попасть в итоговый Excel и CSV файл."
+        )
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         n_rows = len(df_view)
         export_status = st.empty()
@@ -1326,11 +1277,11 @@ if not df_final.empty:
 
         prog.progress(25, text="Формирование Excel (.xlsx)…")
         with st.spinner("⏳ Создаём Excel-файл…"):
-            excel_bytes = to_excel_bytes(df_view[disp_cols])
+            excel_bytes = to_excel_bytes(df_view[export_cols])
 
         prog.progress(70, text="Формирование CSV (.csv)…")
         with st.spinner("⏳ Создаём CSV-файл…"):
-            csv_bytes = to_csv_bytes(df_view[disp_cols])
+            csv_bytes = to_csv_bytes(df_view[export_cols])
 
         prog.progress(100, text="Готово!")
         excel_size = format_file_size(len(excel_bytes))
