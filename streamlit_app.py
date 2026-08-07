@@ -236,7 +236,7 @@ st.markdown(
     [data-testid="stFileUploader"] p,
     [data-testid="stFileUploader"] label,
     [data-testid="stFileUploader"] div {
-        color: #666 !important;
+        color: #ffff !important;
     }
     [data-testid="stFileUploader"] button {
         background-color: #0f2440 !important;
