@@ -46,7 +46,7 @@ st.markdown(
         background: linear-gradient(180deg, #1a3352 0%, #234567 100%) !important;
     }
     [data-testid="stSidebar"] * {
-        color: #fffff !important;
+        color: #666 !important;
     }
     [data-testid="stSidebar"] h1,
     [data-testid="stSidebar"] h2,
