@@ -2,6 +2,7 @@
 # ║        PRICE.FUSION — МОНОЛИТНОЕ СТРИМЛИТ ПРИЛОЖЕНИЕ (ВСЁ В 1 ФАЙЛЕ)         ║
 # ║   Авто-поиск: Артикул | Бренд | Цена → Мин. цена + Источник + Экспорт        ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -9,6 +10,7 @@ import io
 import re
 from pathlib import Path
 from datetime import datetime
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 0. КОНФИГУРАЦИЯ СТРАНИЦЫ (СТРОГО ПЕРВАЯ СТРИМЛИТ КОМАНДА)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -18,6 +20,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. СТИЛИЗАЦИЯ (ПРЕМИУМ ТЁМНЫЙ UI С ГРАДИЕНТАМИ И СТЕКЛОМ)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -30,6 +33,7 @@ st.markdown(
         color: #f4f4f5;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+
     /* ── Сайдбар ── */
     [data-testid="stSidebar"] {
         background: #0e0e12 !important;
@@ -41,6 +45,7 @@ st.markdown(
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     header[data-testid="stHeader"] { background: transparent; }
+
     /* ── Кнопки управления ── */
     .stButton > button {
         background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
@@ -60,6 +65,7 @@ st.markdown(
         box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
         background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
     }
+
     /* ── Кнопки скачивания ── */
     .stDownloadButton > button {
         background: linear-gradient(135deg, #059669 0%, #0d9488 100%);
@@ -77,6 +83,7 @@ st.markdown(
         transform: translateY(-2px);
         box-shadow: 0 8px 30px rgba(16, 185, 129, 0.5);
     }
+
     /* ── Загрузчик файлов ── */
     [data-testid="stFileUploader"] {
         background: rgba(255, 255, 255, 0.02);
@@ -92,6 +99,7 @@ st.markdown(
     [data-testid="stFileUploadDropzone"] {
         background: transparent !important;
     }
+
     /* ── Метрики ── */
     [data-testid="stMetric"] {
         background: rgba(255, 255, 255, 0.02);
@@ -112,6 +120,7 @@ st.markdown(
         letter-spacing: 0.12em;
         color: #71717a !important;
     }
+
     /* ── Карточки файлов ── */
     .card {
         background: rgba(255, 255, 255, 0.025);
@@ -126,6 +135,7 @@ st.markdown(
     .card-ok   { border-left: 3px solid #10b981; }
     .card-warn { border-left: 3px solid #f59e0b; }
     .card-err  { border-left: 3px solid #ef4444; }
+
     /* ── Бейджи ── */
     .badge {
         display: inline-block;
@@ -139,6 +149,7 @@ st.markdown(
     .badge-red    { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
     .badge-yellow { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
     .badge-blue   { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+
     /* ── Заголовки и текст ── */
     .hero-title {
         font-size: 2.8rem;
@@ -164,6 +175,7 @@ st.markdown(
         color: #71717a;
         margin-bottom: 0.8rem;
     }
+
     /* ── Шаги / Онбординг ── */
     .step-box {
         background: rgba(255, 255, 255, 0.02);
@@ -191,6 +203,7 @@ st.markdown(
         color: #c4b5fd;
         margin-bottom: 0.9rem;
     }
+
     /* ── Инпуты и селекты ── */
     .stSelectbox > div > div,
     .stTextInput > div > div > input {
@@ -204,6 +217,7 @@ st.markdown(
         border-color: #8b5cf6 !important;
         box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
     }
+
     /* ── Табы ── */
     [data-testid="stTabs"] > div:first-child {
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -226,6 +240,7 @@ st.markdown(
         border-bottom: 2px solid #8b5cf6 !important;
         background: rgba(139, 92, 246, 0.08) !important;
     }
+
     hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); margin: 1.5rem 0; }
     
     /* ── Скроллбар ── */
@@ -237,17 +252,20 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. СИНОНИМЫ И КЛЮЧЕВЫЕ СЛОВА (ДЕТЕКТОР КОЛОНОК)
 # ─────────────────────────────────────────────────────────────────────────────
 ARTICLE_KW = ["артикул", "арт", "sku", "код", "кодтовара", "код товара", "номер", "part", "oem", "деталь", "catalog", "article", "шифр", "партномер"]
 BRAND_KW   = ["бренд", "brand", "производитель", "произв", "марка", "фирма", "изготовитель", "maker", "manufacturer", "вендор", "make"]
 PRICE_KW   = ["цена", "price", "стоимость", "прайс", "закуп", "розница", "опт", "закупка", "cost", "ррц", "rub", "грн", "uah", "usd", "сумма", "ценасоскидкой"]
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (ПАРСИНГ, НОРМАЛИЗАЦИЯ, ЭКСПОРТ)
 # ─────────────────────────────────────────────────────────────────────────────
 def normalize_header(h: str) -> str:
     return re.sub(r"[\s_\-\.\,\/\(\)]+", "", str(h).strip().lower())
+
 def detect_column(columns: list[str], keywords: list[str]) -> str | None:
     best_col = None
     best_score = -1
@@ -266,6 +284,7 @@ def detect_column(columns: list[str], keywords: list[str]) -> str | None:
                 best_score = len(kw_n)
                 best_col = col
     return best_col
+
 def clean_price(val) -> float | None:
     if val is None or (isinstance(val, float) and np.isnan(val)):
         return None
@@ -292,6 +311,7 @@ def clean_price(val) -> float | None:
         return res if res > 0 else None
     except ValueError:
         return None
+
 def find_header_row(df_raw: pd.DataFrame) -> int:
     best_idx = 0
     best_score = -1
@@ -319,6 +339,7 @@ def find_header_row(df_raw: pd.DataFrame) -> int:
             best_score = score
             best_idx = i
     return best_idx
+
 def read_file(uploaded_file) -> pd.DataFrame | None:
     name = uploaded_file.name.lower()
     try:
@@ -338,6 +359,7 @@ def read_file(uploaded_file) -> pd.DataFrame | None:
             return pd.read_excel(uploaded_file, header=None, dtype=str)
     except Exception:
         return None
+
 def parse_price_file(uploaded_file, forced_cols=None) -> dict:
     result = {
         "name": uploaded_file.name,
@@ -350,92 +372,115 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
         "df_clean": pd.DataFrame(),
         "row_count": 0,
     }
+
     df_raw = read_file(uploaded_file)
     if df_raw is None or df_raw.empty:
         result["message"] = "Файл пустой или поврежден"
         return result
+
     hrow = find_header_row(df_raw)
     result["header_row"] = hrow
+
     headers = df_raw.iloc[hrow].tolist()
     headers = [str(h).strip() if h is not None else f"col_{i}" for i, h in enumerate(headers)]
+
     df = df_raw.iloc[hrow + 1:].copy()
     df.columns = headers
     df = df.dropna(how="all")
+
     if df.empty:
         result["message"] = "Нет данных после шапки"
         return result
+
     # Автоопределение или принудительный ручной выбор
     if forced_cols and forced_cols.get("art") and forced_cols.get("art") != "—":
         col_art = forced_cols["art"]
     else:
         col_art = detect_column(headers, ARTICLE_KW)
+
     if forced_cols and forced_cols.get("brand") and forced_cols.get("brand") != "—":
         col_brand = forced_cols["brand"]
     else:
         col_brand = detect_column(headers, BRAND_KW)
+
     if forced_cols and forced_cols.get("price") and forced_cols.get("price") != "—":
         col_price = forced_cols["price"]
     else:
         col_price = detect_column(headers, PRICE_KW)
+
     result["col_art"]   = col_art
     result["col_brand"] = col_brand
     result["col_price"] = col_price
+
     if not col_art or not col_price:
         result["message"] = f"❌ Не найдены обязательные столбцы (Артикул: {bool(col_art)}, Цена: {bool(col_price)})"
         return result
+
     rows = []
     source = Path(uploaded_file.name).stem
+
     for _, row in df.iterrows():
         art_val = str(row.get(col_art, "")).strip()
         if not art_val or art_val.lower() in ("nan", "none", ""):
             continue
+
         price_val = clean_price(row.get(col_price))
         if price_val is None:
             continue
+
         brand_val = ""
         if col_brand:
             bv = str(row.get(col_brand, "")).strip()
             brand_val = "" if bv.lower() in ("nan", "none", "") else bv
+
         rows.append({
             "Артикул": art_val,
             "Бренд": brand_val if brand_val else "—",
             "Цена": price_val,
             "Источник": source,
         })
+
     if not rows:
         result["message"] = "⚠️ Нет строк с валидными артикулами и ценами"
         result["status"] = "warning"
         return result
+
     df_clean = pd.DataFrame(rows)
     result["df_clean"] = df_clean
     result["row_count"] = len(df_clean)
     result["status"] = "ok"
     result["message"] = f"✅ Успешно: {len(df_clean):,} строк"
     return result
+
 def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     df = df_all.copy()
     # Нормализуем артикул (без пробелов, верхний регистр)
     df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_]", "", regex=True)
+
     grp = df.groupby("_key")["Цена"].agg(
         Цена_мин="min",
         Цена_макс="max",
         Предложений="count"
     ).reset_index()
+
     idx_min = df.groupby("_key")["Цена"].idxmin()
     df_best = df.loc[idx_min].copy()
     df_best = df_best.merge(grp, on="_key")
     df_best = df_best.drop(columns=["_key", "Цена"], errors="ignore")
     df_best = df_best.rename(columns={"Цена_мин": "Цена"})
+
     df_best["Экономия_руб"] = (df_best["Цена_макс"] - df_best["Цена"]).round(2)
     df_best["Экономия_%"] = np.where(
         df_best["Цена_макс"] > 0,
         ((df_best["Экономия_руб"] / df_best["Цена_макс"]) * 100).round(1),
         0.0
     )
+
     cols = ["Артикул", "Бренд", "Цена", "Источник", "Предложений", "Цена_макс", "Экономия_руб", "Экономия_%"]
     df_best = df_best[[c for c in cols if c in df_best.columns]]
     df_best = df_best.sort_values("Артикул").reset_index(drop=True)
     return df_best
+
 def to_excel_bytes(df: pd.DataFrame) -> bytes:
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -443,25 +488,30 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
         ws = writer.sheets["Best Prices"]
         from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
         from openpyxl.utils import get_column_letter
+
         header_fill = PatternFill("solid", fgColor="18181b")
         header_font = Font(bold=True, color="C4B5FD", size=10)
         thin_border = Border(bottom=Side(style="thin", color="27272a"))
         price_font = Font(bold=True, color="34D399", size=11)
+
         price_col_idx = None
         for i, col in enumerate(df.columns, 1):
             if col == "Цена":
                 price_col_idx = i
+
         for col_idx, col_name in enumerate(df.columns, 1):
             cell = ws.cell(row=1, column=col_idx)
             cell.value = col_name.upper()
             cell.fill = header_fill
             cell.font = header_font
             cell.alignment = Alignment(horizontal="center", vertical="center")
+
             max_len = max(
                 len(str(col_name)),
                 *[len(str(ws.cell(row=r, column=col_idx).value or "")) for r in range(2, min(ws.max_row + 1, 200))]
             )
             ws.column_dimensions[get_column_letter(col_idx)].width = min(max_len + 4, 45)
+
         for row in ws.iter_rows(min_row=2, max_row=ws.max_row):
             for cell in row:
                 cell.alignment = Alignment(vertical="center")
@@ -470,11 +520,14 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
                     cell.font = price_font
                     if cell.value is not None:
                         cell.number_format = '#,##0.00 ₽'
+
         ws.row_dimensions[1].height = 24
         ws.freeze_panes = "A2"
     return output.getvalue()
+
 def to_csv_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False, encoding="utf-8-sig", sep=";").encode("utf-8-sig")
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. СОСТОЯНИЕ (SESSION STATE)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -484,6 +537,7 @@ if "df_final" not in st.session_state:
     st.session_state.df_final = pd.DataFrame()
 if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. САЙДБАР (ДИЗАЙН В СТИЛЕ ВАРИАНТА А)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -500,19 +554,24 @@ with st.sidebar:
         """,
         unsafe_allow_html=True,
     )
+
     st.markdown('<div class="section-title">📂 Источник данных</div>', unsafe_allow_html=True)
     
     # Виртуальный путь для соответствия референсу Варианта А
     sim_path = st.text_input("Путь к папке", value=r"C:\Прайсы\2026\ или /home/user/prices", label_visibility="collapsed")
+
     uploaded_files = st.file_uploader(
         "Выберите прайс-листы",
         type=["xlsx", "xls", "csv", "ods"],
         accept_multiple_files=True,
         help="Загрузите прайс-листы или папку с файлами"
     )
+
     if uploaded_files:
         st.session_state.uploaded_objects = uploaded_files
+
     st.markdown("<br>", unsafe_allow_html=True)
+
     c_run, c_clr = st.columns(2)
     with c_run:
         btn_analyze = st.button("▶ Анализ", use_container_width=True, disabled=not st.session_state.uploaded_objects)
@@ -522,6 +581,7 @@ with st.sidebar:
             st.session_state.df_final = pd.DataFrame()
             st.session_state.uploaded_objects = []
             st.rerun()
+
     st.markdown("---")
     st.markdown('<div class="section-title">⚡ Демо-данные</div>', unsafe_allow_html=True)
     st.caption("Нет собственной папки? Нажмите кнопку для быстрого теста трех прайсов.")
@@ -543,6 +603,7 @@ with st.sidebar:
             "Бренд": ["Apple", "Apple", "Samsung", "Xiaomi", "Apple Store", "Sony"],
             "Цена со скидкой": [79000, 88500, 71000, 52900, 139000, 48900] # Здесь дешевле IP15-256, XIA-14, MAC-AIR
         })
+
         def df_to_uploaded(df, filename):
             output = io.BytesIO()
             with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -553,11 +614,13 @@ with st.sidebar:
                     super().__init__(val)
                     self.name = name
             return MockFile(output.getvalue(), filename)
+
         demo_files = [
             df_to_uploaded(df_demo1, "Прайс_Марвел_Дистрибьюция.xlsx"),
             df_to_uploaded(df_demo2, "ОптТорг_Смартфоны_Юг.xlsx"),
             df_to_uploaded(df_demo3, "Премиум_Импорт_Москва.xlsx"),
         ]
+
         st.session_state.uploaded_objects = demo_files
         
         results = []
@@ -573,6 +636,7 @@ with st.sidebar:
             df_all = pd.concat(all_frames, ignore_index=True)
             st.session_state.df_final = aggregate_best_prices(df_all)
         st.rerun()
+
     st.markdown("---")
     st.markdown(
         """
@@ -585,6 +649,7 @@ with st.sidebar:
         """,
         unsafe_allow_html=True,
     )
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 6. ОБРАБОТКА ПО КНОПКЕ АНАЛИЗ
 # ─────────────────────────────────────────────────────────────────────────────
@@ -603,6 +668,7 @@ if btn_analyze and st.session_state.uploaded_objects:
             forced["brand"] = st.session_state[f"ovr_brand_{uf.name}"]
         if st.session_state.get(f"ovr_price_{uf.name}"):
             forced["price"] = st.session_state[f"ovr_price_{uf.name}"]
+
         res = parse_price_file(uf, forced_cols=forced if forced else None)
         results.append(res)
         if res["status"] == "ok" and not res["df_clean"].empty:
@@ -616,10 +682,12 @@ if btn_analyze and st.session_state.uploaded_objects:
         st.session_state.df_final = aggregate_best_prices(df_all)
     else:
         st.session_state.df_final = pd.DataFrame()
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. ГЛАВНЫЙ ИНТЕРФЕЙС
 # ─────────────────────────────────────────────────────────────────────────────
 df_final: pd.DataFrame = st.session_state.df_final
+
 st.markdown(
     """
     <div style="padding: 1.5rem 0 1.2rem;">
@@ -632,6 +700,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 # Если ничего не загружено — показываем стильный онбординг (как в Варианте А)
 if df_final.empty and not st.session_state.parsed_results:
     c1, c2, c3 = st.columns(3)
@@ -674,13 +743,16 @@ if df_final.empty and not st.session_state.parsed_results:
             """,
             unsafe_allow_html=True,
         )
+
     st.markdown("<br>", unsafe_allow_html=True)
     st.info("👈 **Начните работу:** выберите файлы слева или нажмите **«🚀 Загрузить демо-папку»** для быстрого теста.", icon="💡")
     st.stop()
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 8. КАРТОЧКИ ФАЙЛОВ И РУЧНАЯ КОРРЕКЦИЯ КОЛОНОК
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown('<div class="section-title">📂 Источники прайс-листов</div>', unsafe_allow_html=True)
+
 for res in st.session_state.parsed_results:
     icon  = "✅" if res["status"] == "ok" else ("⚠️" if res["status"] == "warning" else "❌")
     cls   = "card-ok" if res["status"] == "ok" else ("card-warn" if res["status"] == "warning" else "card-err")
@@ -696,6 +768,7 @@ for res in st.session_state.parsed_results:
     art_b   = f'<span class="badge badge-blue">Арт: {res["col_art"] or "—"}</span>'
     brand_b = f'<span class="badge badge-blue">Бренд: {res["col_brand"] or "—"}</span>'
     price_b = f'<span class="badge badge-blue">Цена: {res["col_price"] or "—"}</span>'
+
     st.markdown(
         f"""
         <div class="card {cls}">
@@ -713,6 +786,7 @@ for res in st.session_state.parsed_results:
         """,
         unsafe_allow_html=True,
     )
+
     # Ручное переопределение колонок при необходимости
     if res["status"] in ("error", "warning") or not res["col_art"] or not res["col_price"]:
         with st.expander(f"🔧 Настроить столбцы вручную для «{res['name']}»"):
@@ -729,6 +803,7 @@ for res in st.session_state.parsed_results:
                     headers_list = ["—"]
             except Exception:
                 headers_list = ["—"]
+
             c_a, c_b, c_p = st.columns(3)
             with c_a:
                 st.selectbox("Столбец: Артикул", headers_list, key=f"ovr_art_{res['name']}")
@@ -737,22 +812,28 @@ for res in st.session_state.parsed_results:
             with c_p:
                 st.selectbox("Столбец: Цена", headers_list, key=f"ovr_price_{res['name']}")
             st.caption("После выбора нажмите кнопку **▶ Анализ** в сайдбаре слева повторно.")
+
 st.markdown("<br>", unsafe_allow_html=True)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 9. МЕТРИКИ (KPI DASHBOARD)
 # ─────────────────────────────────────────────────────────────────────────────
 if not df_final.empty:
     st.markdown('<div class="section-title">📊 Сводные метрики агрегатора</div>', unsafe_allow_html=True)
+
     total_unique = len(df_final)
     total_offers = df_final["Предложений"].sum() if "Предложений" in df_final.columns else 0
     total_savings = df_final["Экономия_руб"].sum() if "Экономия_руб" in df_final.columns else 0
     avg_price = df_final["Цена"].mean()
+
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("🔑 Уникальных SKU", f"{total_unique:,}")
     m2.metric("📋 Всего предложений", f"{int(total_offers):,}")
     m3.metric("💰 Средняя мин. цена", f"{avg_price:,.0f} ₽")
     m4.metric("📉 Суммарная экономия", f"{total_savings:,.0f} ₽", delta="Лучшие цены со всех прайсов")
+
     st.markdown("<br>", unsafe_allow_html=True)
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 10. ТАБЛИЦА РЕЗУЛЬТАТОВ, АНАЛИЗ И ЭКСПОРТ
 # ─────────────────────────────────────────────────────────────────────────────
@@ -761,9 +842,11 @@ if not df_final.empty:
     tab_table, tab_analysis, tab_sources = st.tabs([
         "📋 Итоговый прайс", "📈 Анализ и графики", "🏢 По источникам"
     ])
+
     # ── TAB 1: ТАБЛИЦА ──
     with tab_table:
         st.markdown('<div class="section-title">🏆 Итоговый прайс (минимальная цена + источник)</div>', unsafe_allow_html=True)
+
         f_col1, f_col2, f_col3 = st.columns([3, 2, 2])
         with f_col1:
             search_q = st.text_input("🔍 Поиск по артикулу, бренду или источнику", placeholder="Введите запрос...", label_visibility="collapsed")
@@ -773,6 +856,7 @@ if not df_final.empty:
         with f_col3:
             source_list = ["Все источники"] + sorted(df_final["Источник"].dropna().unique().tolist())
             sel_source_val = st.selectbox("Источник", source_list, label_visibility="collapsed")
+
         df_view = df_final.copy()
         if search_q:
             q = search_q.strip().lower()
@@ -785,8 +869,10 @@ if not df_final.empty:
             df_view = df_view[df_view["Бренд"] == sel_brand_val]
         if sel_source_val != "Все источники":
             df_view = df_view[df_view["Источник"] == sel_source_val]
+
         disp_cols = ["Артикул", "Бренд", "Цена", "Источник", "Предложений", "Экономия_руб", "Экономия_%"]
         disp_cols = [c for c in disp_cols if c in df_view.columns]
+
         st.dataframe(
             df_view[disp_cols].style.format({
                 "Цена": "{:,.2f} ₽",
@@ -806,12 +892,15 @@ if not df_final.empty:
                 "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
             }
         )
+
         # ── Экспорт ──
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown('<div class="section-title">💾 Скачивание результата</div>', unsafe_allow_html=True)
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         excel_bytes = to_excel_bytes(df_view[disp_cols])
         csv_bytes = to_csv_bytes(df_view[disp_cols])
+
         dl_c1, dl_c2 = st.columns(2)
         with dl_c1:
             st.download_button(
@@ -829,9 +918,11 @@ if not df_final.empty:
                 mime="text/csv",
                 use_container_width=True,
             )
+
     # ── TAB 2: АНАЛИЗ И ГРАФИКИ ──
     with tab_analysis:
         st.markdown('<div class="section-title">📈 Анализ цен и распределения</div>', unsafe_allow_html=True)
+
         gc1, gc2 = st.columns(2)
         with gc1:
             st.markdown("**Распределение минимальных цен**")
@@ -845,14 +936,17 @@ if not df_final.empty:
                 "Кол-во": hist.values,
             })
             st.bar_chart(hist_df.set_index("Диапазон"), color="#8b5cf6", height=300)
+
         with gc2:
             st.markdown("**Топ-10 брендов по числу SKU**")
             top_brands = df_final[df_final["Бренд"] != "—"]["Бренд"].value_counts().head(10).reset_index()
             top_brands.columns = ["Бренд", "Артикулов"]
             st.bar_chart(top_brands.set_index("Бренд"), color="#34d399", height=300)
+
     # ── TAB 3: ПО ИСТОЧНИКАМ ──
     with tab_sources:
         st.markdown('<div class="section-title">🏢 Статистика по источникам (поставщикам)</div>', unsafe_allow_html=True)
+
         src_stats = df_final.groupby("Источник").agg(
             Побед=("Источник", "count"),
             Мин_цена=("Цена", "min"),
@@ -860,6 +954,7 @@ if not df_final.empty:
             Макс_цена=("Цена", "max"),
             Экономия=("Экономия_руб", "sum"),
         ).round(2).sort_values("Побед", ascending=False).reset_index()
+
         st.dataframe(
             src_stats.style.format({
                 "Мин_цена": "{:,.0f} ₽",
@@ -879,6 +974,7 @@ if not df_final.empty:
                 "Экономия": st.column_config.NumberColumn("💚 Экономия ₽", format="%.0f ₽"),
             }
         )
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 11. FOOTER
 # ─────────────────────────────────────────────────────────────────────────────
