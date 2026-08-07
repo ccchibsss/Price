@@ -236,36 +236,73 @@ st.markdown(
         color: #ffffff !important;
     }
     
-    /* ── Стилизация File Uploader (Полностью тёмная тема + белые/светлые буквы) ── */
+    /* ── Стилизация File Uploader (Полностью тёмная тема + белые буквы) ── */
     [data-testid="stFileUploader"] {
-        background-color: #121217 !important;
-        background: #121217 !important;
-        border: 2px dashed rgba(255, 255, 255, 0.15) !important;
-        border-radius: 16px !important;
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
     }
+    /* ГЛАВНОЕ: сама зона дропа (dropzone) — именно она была белой */
+    [data-testid="stFileUploaderDropzone"],
+    section[data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploader"] section {
+        background-color: #121217 !important;
+        background: linear-gradient(135deg, #14141b 0%, #101015 100%) !important;
+        border: 2px dashed rgba(139, 92, 246, 0.35) !important;
+        border-radius: 16px !important;
+        padding: 1.4rem !important;
+        transition: all 0.25s ease !important;
+    }
+    [data-testid="stFileUploaderDropzone"]:hover,
+    section[data-testid="stFileUploaderDropzone"]:hover {
+        border-color: rgba(139, 92, 246, 0.7) !important;
+        background: linear-gradient(135deg, #1a1a24 0%, #141419 100%) !important;
+    }
+    /* Весь текст внутри загрузчика — белый/светлый */
     [data-testid="stFileUploader"] *, 
+    [data-testid="stFileUploaderDropzone"] *,
     [data-testid="stFileUploader"] span, 
+    [data-testid="stFileUploader"] small,
     [data-testid="stFileUploader"] p, 
-    [data-testid="stFileUploader"] label {
+    [data-testid="stFileUploader"] div,
+    [data-testid="stFileUploader"] label,
+    [data-testid="stFileUploaderDropzoneInstructions"] * {
         color: #f4f4f5 !important;
     }
-    [data-testid="stFileUploader"] button {
-        background-color: #1f1f2e !important;
+    [data-testid="stFileUploaderDropzoneInstructions"] small,
+    [data-testid="stFileUploader"] small {
+        color: #a1a1aa !important;
+    }
+    /* Кнопка Browse / Upload */
+    [data-testid="stFileUploader"] button,
+    [data-testid="stBaseButton-secondary"] {
+        background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border: none !important;
         border-radius: 10px !important;
         font-weight: 600 !important;
-        transition: background 0.2s !important;
+        box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+        transition: all 0.2s !important;
     }
     [data-testid="stFileUploader"] button:hover {
-        background-color: #2e2e3f !important;
-        border-color: #8b5cf6 !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5) !important;
     }
-    
-    /* Подсветка подсказки скрепки и названия файлов в тёмной теме */
-    [data-testid="stFileUploader"] svg {
+    /* Иконка облака/скрепки */
+    [data-testid="stFileUploader"] svg,
+    [data-testid="stFileUploaderDropzone"] svg {
         fill: #a78bfa !important;
         color: #a78bfa !important;
+    }
+    /* Список загруженных файлов */
+    [data-testid="stFileUploaderFile"] {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border-radius: 10px !important;
+        padding: 0.4rem !important;
+    }
+    [data-testid="stFileUploaderFile"] * {
+        color: #f4f4f5 !important;
     }
 
     /* ── Табы ── */
@@ -290,6 +327,50 @@ st.markdown(
         border-bottom: 2px solid #8b5cf6 !important;
         background: rgba(139, 92, 246, 0.08) !important;
     }
+
+    /* ── Multiselect (выбор столбцов) ── */
+    [data-testid="stMultiSelect"] > div > div {
+        background: #121217 !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stMultiSelect"] * { color: #ffffff !important; }
+    /* Теги выбранных значений */
+    [data-baseweb="tag"] {
+        background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+        color: #ffffff !important;
+        border-radius: 8px !important;
+    }
+    [data-baseweb="tag"] span, [data-baseweb="tag"] svg { color: #ffffff !important; fill: #ffffff !important; }
+
+    /* ── Выпадающие меню (popover списки selectbox/multiselect) ── */
+    [data-baseweb="popover"], [data-baseweb="menu"], ul[role="listbox"] {
+        background: #16161d !important;
+    }
+    [data-baseweb="popover"] li, ul[role="listbox"] li, [role="option"] {
+        background: #16161d !important;
+        color: #f4f4f5 !important;
+    }
+    [data-baseweb="popover"] li:hover, ul[role="listbox"] li:hover, [role="option"]:hover {
+        background: rgba(124, 58, 237, 0.25) !important;
+    }
+
+    /* ── Expander (настройка столбцов) ── */
+    [data-testid="stExpander"] {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+    }
+    [data-testid="stExpander"] summary,
+    [data-testid="stExpander"] details > summary {
+        color: #f4f4f5 !important;
+        font-weight: 600 !important;
+    }
+    [data-testid="stExpander"] * { color: #e4e4e7 !important; }
+
+    /* ── Чекбоксы и caption ── */
+    [data-testid="stCaptionContainer"], .stCaption, small { color: #a1a1aa !important; }
 
     hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.06); margin: 1.5rem 0; }
     
@@ -907,40 +988,78 @@ if not df_final.empty:
             source_list = ["Все источники"] + sorted(df_final["Источник"].dropna().unique().tolist())
             sel_source_val = st.selectbox("Источник", source_list, label_visibility="collapsed")
 
+        # ── НАСТРОЙКА СТОЛБЦОВ: где искать и что показывать/экспортировать ──
+        all_columns = [c for c in df_final.columns.tolist()]
+        # Текстовые столбцы, по которым имеет смысл искать
+        text_search_cols = [c for c in ["Артикул", "Бренд", "Источник"] if c in all_columns]
+
+        with st.expander("⚙️ Настройка столбцов (поиск и экспорт)", expanded=False):
+            cfg1, cfg2 = st.columns(2)
+            with cfg1:
+                st.markdown("**🔍 Искать в столбцах:**")
+                search_in_cols = st.multiselect(
+                    "Столбцы для поиска",
+                    options=text_search_cols,
+                    default=text_search_cols,
+                    label_visibility="collapsed",
+                    key="search_cols_select",
+                )
+            with cfg2:
+                st.markdown("**📋 Показать / экспортировать столбцы:**")
+                default_show = [c for c in ["Артикул", "Бренд", "Цена", "Источник", "Предложений", "Экономия_руб", "Экономия_%"] if c in all_columns]
+                disp_cols = st.multiselect(
+                    "Столбцы для отображения",
+                    options=all_columns,
+                    default=default_show,
+                    label_visibility="collapsed",
+                    key="display_cols_select",
+                )
+
         df_view = df_final.copy()
         if search_q:
             q = search_q.strip().lower()
-            df_view = df_view[
-                df_view["Артикул"].str.lower().str.contains(q, na=False) |
-                df_view["Бренд"].str.lower().str.contains(q, na=False) |
-                df_view["Источник"].str.lower().str.contains(q, na=False)
-            ]
+            active_search_cols = search_in_cols if search_in_cols else text_search_cols
+            mask = pd.Series(False, index=df_view.index)
+            for col in active_search_cols:
+                mask = mask | df_view[col].astype(str).str.lower().str.contains(q, na=False)
+            df_view = df_view[mask]
         if sel_brand_val != "Все бренды":
             df_view = df_view[df_view["Бренд"] == sel_brand_val]
         if sel_source_val != "Все источники":
             df_view = df_view[df_view["Источник"] == sel_source_val]
 
-        disp_cols = ["Артикул", "Бренд", "Цена", "Источник", "Предложений", "Экономия_руб", "Экономия_%"]
+        # Если пользователь очистил выбор столбцов — используем набор по умолчанию
+        if not disp_cols:
+            disp_cols = [c for c in ["Артикул", "Бренд", "Цена", "Источник", "Предложений", "Экономия_руб", "Экономия_%"] if c in df_view.columns]
         disp_cols = [c for c in disp_cols if c in df_view.columns]
 
+        _fmt_map = {
+            "Цена": "{:,.2f} ₽",
+            "Цена_макс": "{:,.2f} ₽",
+            "Экономия_руб": "{:,.2f} ₽",
+            "Экономия_%": "{:.1f}%",
+        }
+        _active_fmt = {k: v for k, v in _fmt_map.items() if k in disp_cols}
+
+        _col_cfg_map = {
+            "Артикул": st.column_config.TextColumn("🔑 Артикул", width="medium"),
+            "Бренд": st.column_config.TextColumn("🏷 Бренд", width="medium"),
+            "Цена": st.column_config.NumberColumn("💰 Мин. цена (₽)", format="%.2f ₽", width="small"),
+            "Цена_макс": st.column_config.NumberColumn("📈 Макс. цена (₽)", format="%.2f ₽", width="small"),
+            "Источник": st.column_config.TextColumn("📁 Источник (Прайс)", width="large"),
+            "Предложений": st.column_config.NumberColumn("📊 Предл.", width="small", help="Кол-во поставщиков"),
+            "Экономия_руб": st.column_config.NumberColumn("💚 Экономия (₽)", format="%.2f ₽", width="small"),
+            "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
+        }
+        _active_cfg = {k: v for k, v in _col_cfg_map.items() if k in disp_cols}
+
+        st.caption(f"Показано столбцов: **{len(disp_cols)}** · строк: **{len(df_view):,}**")
         st.dataframe(
-            df_view[disp_cols].style.format({
-                "Цена": "{:,.2f} ₽",
-                "Экономия_руб": "{:,.2f} ₽",
-                "Экономия_%": "{:.1f}%",
-            }),
+            df_view[disp_cols].style.format(_active_fmt),
             use_container_width=True,
             height=500,
             hide_index=True,
-            column_config={
-                "Артикул": st.column_config.TextColumn("🔑 Артикул", width="medium"),
-                "Бренд": st.column_config.TextColumn("🏷 Бренд", width="medium"),
-                "Цена": st.column_config.NumberColumn("💰 Мин. цена (₽)", format="%.2f ₽", width="small"),
-                "Источник": st.column_config.TextColumn("📁 Источник (Прайс)", width="large"),
-                "Предложений": st.column_config.NumberColumn("📊 Предл.", width="small", help="Кол-во поставщиков"),
-                "Экономия_руб": st.column_config.NumberColumn("💚 Экономия (₽)", format="%.2f ₽", width="small"),
-                "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
-            }
+            column_config=_active_cfg,
         )
 
         # ── Экспорт ──
