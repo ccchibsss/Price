@@ -134,6 +134,65 @@ st.markdown(
         fill: #93c5fd !important;
         color: #93c5fd !important;
     }
+    /* ── ФИКС: белый фон списка загруженных файлов ── */
+    [data-testid="stFileUploader"] section,
+    [data-testid="stFileUploader"] > div,
+    [data-testid="stFileUploader"] > div > div,
+    [data-testid="stFileUploader"] ul {
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    /* Белая карточка вокруг списка файлов (как на скрине) */
+    [data-testid="stFileUploader"] > div > div:has(ul),
+    [data-testid="stFileUploader"] section + div {
+        background: rgba(15, 36, 64, 0.55) !important;
+        background-color: rgba(15, 36, 64, 0.55) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 12px !important;
+        padding: 0.75rem !important;
+    }
+    /* Каждый файл в списке */
+    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploader"] li,
+    [data-testid="stFileUploader"] li[data-testid="stFileUploaderFile"] {
+        background: rgba(30, 58, 95, 0.9) !important;
+        background-color: rgba(30, 58, 95, 0.9) !important;
+        border: 1px solid rgba(147, 197, 253, 0.25) !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] * {
+        color: #f4f4f5 !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] small {
+        color: #93c5fd !important;
+    }
+    /* Ловим инлайновые белые фоны Streamlit */
+    [data-testid="stFileUploader"] div[style*="background-color: rgb(255"],
+    [data-testid="stFileUploader"] div[style*="background-color: #fff"],
+    [data-testid="stFileUploader"] div[style*="background: rgb(255"],
+    [data-testid="stFileUploader"] div[style*="background: #fff"],
+    [data-testid="stFileUploader"] [style*="255, 255"],
+    [data-testid="stFileUploader"] [style*="255,255"],
+    [data-testid="stFileUploader"] div[style*="240, 242"],
+    [data-testid="stFileUploader"] div[style*="242, 246"],
+    [data-testid="stFileUploader"] [style*="f0f2f6"],
+    [data-testid="stFileUploader"] [style*="F0F2F6"],
+    [data-testid="stFileUploader"] [style*="ffffff"],
+    [data-testid="stFileUploader"] [style*="FFFFFF"] {
+        background: rgba(15, 36, 64, 0.6) !important;
+        background-color: rgba(15, 36, 64, 0.6) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+    }
+    /* Принудительно тёмный фон для любого светлого контейнера внутри */
+    [data-testid="stFileUploader"] > div > div > div {
+        background: rgba(15, 36, 64, 0.45) !important;
+        background-color: rgba(15, 36, 64, 0.45) !important;
+    }
+    /* Иконка файла */
+    [data-testid="stFileUploaderFile"] svg {
+        fill: #bfdbfe !important;
+        color: #bfdbfe !important;
+    }
 
     /* ── Метрики ── */
     [data-testid="stMetric"] {
@@ -354,6 +413,20 @@ st.markdown(
 
     /* ── Caption ── */
     .stCaption { color: #93c5fd !important; }
+
+    /* ── Spinner для экспорта ── */
+    .pf-spinner {
+        width: 22px;
+        height: 22px;
+        border: 3px solid rgba(147, 197, 253, 0.25);
+        border-top-color: #60a5fa;
+        border-radius: 50%;
+        animation: pf-spin 0.7s linear infinite;
+        flex-shrink: 0;
+    }
+    @keyframes pf-spin {
+        to { transform: rotate(360deg); }
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -723,8 +796,9 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     return df_best
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
 def to_excel_bytes(df: pd.DataFrame) -> bytes:
-    """Создание Excel-файла с форматированием."""
+    """Создание Excel-файла с форматированием (кэшируется)."""
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Best Prices")
@@ -772,9 +846,19 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
     return output.getvalue()
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
 def to_csv_bytes(df: pd.DataFrame) -> bytes:
-    """Создание CSV-файла (UTF-8 с BOM, разделитель — точка с запятой)."""
+    """Создание CSV-файла (UTF-8 с BOM, разделитель — точка с запятой). Кэшируется."""
     return df.to_csv(index=False, encoding="utf-8-sig", sep=";").encode("utf-8-sig")
+
+
+def format_file_size(num_bytes: int) -> str:
+    """Человекочитаемый размер файла."""
+    if num_bytes < 1024:
+        return f"{num_bytes} Б"
+    if num_bytes < 1024 * 1024:
+        return f"{num_bytes / 1024:.1f} КБ"
+    return f"{num_bytes / (1024 * 1024):.2f} МБ"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1202,43 +1286,105 @@ if not df_final.empty:
         disp_cols = [c for c in disp_cols if c in df_view.columns]
 
         # ── Экспорт (СВЕРХУ ТАБЛИЦЫ) ──
-        st.markdown('<div class="section-title" style="margin-top:0.8rem;">💾 Скачивание результата</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="section-title" style="margin-top:0.8rem;">💾 Скачивание результата</div>',
+            unsafe_allow_html=True,
+        )
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-        export_rows = len(df_view)
+        n_rows = len(df_view)
+        export_status = st.empty()
+        export_progress = st.empty()
 
-        # Streamlit download_button требует готовые bytes, поэтому показываем статус
-        # именно на этапе подготовки файлов перед появлением кнопок скачивания.
-        with st.status(
-            f"Формирую файлы экспорта: {export_rows:,} строк...",
-            expanded=False,
-        ) as export_status:
-            export_status.write("Подготавливаю Excel (.xlsx)...")
+        # Индикатор загрузки при формировании файлов
+        export_status.markdown(
+            f"""
+            <div style="
+                background: rgba(59,130,246,0.12);
+                border: 1px solid rgba(96,165,250,0.35);
+                border-radius: 12px;
+                padding: 0.85rem 1.1rem;
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+            ">
+              <div class="pf-spinner"></div>
+              <div>
+                <div style="color:#f4f4f5;font-weight:600;font-size:0.9rem;">
+                  Формирование файлов для экспорта…
+                </div>
+                <div style="color:#93c5fd;font-size:0.78rem;margin-top:0.15rem;">
+                  Обрабатываем {n_rows:,} строк · Excel + CSV
+                </div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        prog = export_progress.progress(0, text="Подготовка данных…")
+
+        prog.progress(25, text="Формирование Excel (.xlsx)…")
+        with st.spinner("⏳ Создаём Excel-файл…"):
             excel_bytes = to_excel_bytes(df_view[disp_cols])
-            export_status.write("Подготавливаю CSV (.csv)...")
+
+        prog.progress(70, text="Формирование CSV (.csv)…")
+        with st.spinner("⏳ Создаём CSV-файл…"):
             csv_bytes = to_csv_bytes(df_view[disp_cols])
-            export_status.update(
-                label=f"Файлы готовы к скачиванию: {export_rows:,} строк",
-                state="complete",
-                expanded=False,
-            )
+
+        prog.progress(100, text="Готово!")
+        excel_size = format_file_size(len(excel_bytes))
+        csv_size = format_file_size(len(csv_bytes))
+
+        export_progress.empty()
+        export_status.markdown(
+            f"""
+            <div style="
+                background: rgba(16,185,129,0.12);
+                border: 1px solid rgba(16,185,129,0.35);
+                border-radius: 12px;
+                padding: 0.75rem 1.1rem;
+                margin-bottom: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            ">
+              <div style="display:flex;align-items:center;gap:0.6rem;">
+                <span style="font-size:1.1rem;">✅</span>
+                <div>
+                  <div style="color:#6ee7b7;font-weight:600;font-size:0.88rem;">
+                    Файлы готовы к скачиванию
+                  </div>
+                  <div style="color:#93c5fd;font-size:0.75rem;margin-top:0.1rem;">
+                    {n_rows:,} строк · Excel {excel_size} · CSV {csv_size}
+                  </div>
+                </div>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         dl_c1, dl_c2 = st.columns(2)
         with dl_c1:
             st.download_button(
-                label="📗 Скачать в Excel (.xlsx)",
+                label=f"📗 Скачать Excel (.xlsx) · {excel_size}",
                 data=excel_bytes,
                 file_name=f"price_fusion_{timestamp}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
+                key=f"dl_xlsx_{timestamp}_{n_rows}",
             )
         with dl_c2:
             st.download_button(
-                label="📄 Скачать в CSV (.csv)",
+                label=f"📄 Скачать CSV (.csv) · {csv_size}",
                 data=csv_bytes,
                 file_name=f"price_fusion_{timestamp}.csv",
                 mime="text/csv",
                 use_container_width=True,
+                key=f"dl_csv_{timestamp}_{n_rows}",
             )
 
         st.markdown("<br>", unsafe_allow_html=True)
