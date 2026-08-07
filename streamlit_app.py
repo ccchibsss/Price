@@ -1,6 +1,7 @@
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║        PRICE.FUSION — МОНОЛИТНОЕ СТРИМЛИТ ПРИЛОЖЕНИЕ (ВСЁ В 1 ФАЙЛЕ)         ║
-# ║   Авто-поиск: Артикул | Бренд | Цена → Мин. цена + Источник + Экспорт        ║
+# ║   Авто-поиск: Артикул | Бренд | Цена → Мин. цена + Источник + Экспорт        
+# ║   Оптимизировано для 300k+ строк на файл                                     ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 import streamlit as st
@@ -11,8 +12,8 @@ import re
 from pathlib import Path
 from datetime import datetime
 
-# ────────────────────────────────────────────────────────────────────────────
-# 0. КОНФИГУРАЦИЯ СТРАНИЦЫ (СТРОГО ПЕРВАЯ СТРИМЛИТ КОМАНДА)
+# ─────────────────────────────────────────────────────────────────────────────
+# 0. КОНФИГУРАЦИЯ СТРАНИЦЫ
 # ─────────────────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Price.Fusion — Агрегатор прайсов",
@@ -22,69 +23,65 @@ st.set_page_config(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 1. СТИЛИЗАЦИЯ (ПРИЯТНАЯ СИНИЯ ТЕМА)
+# 1. СТИЛИЗАЦИЯ (СИНИЯ ТЕМА + ТЁМНЫЕ КНОПКИ)
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown(
     """
     <style>
-    /* ── Общий фон и шрифт ── */
     .stApp {
         background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%);
         color: #f4f4f5;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
-
-    /* ─ Сайдбар ── */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #1a3352 0%, #234567 100%) !important;
         border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
-    [data-testid="stSidebar"] * {
-        color: #e0e7ff !important;
-    }
+    [data-testid="stSidebar"] * { color: #e0e7ff !important; }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
     header[data-testid="stHeader"] { background: transparent; }
 
-    /* ── Кнопки управления ── */
     .stButton > button {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        color: white;
-        border: none;
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f2440 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(96, 165, 250, 0.3) !important;
         border-radius: 12px;
         padding: 0.6rem 1.4rem;
         font-weight: 600;
         font-size: 0.85rem;
         letter-spacing: 0.02em;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        box-shadow: 0 4px 20px rgba(15, 36, 64, 0.5);
         width: 100%;
     }
     .stButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6);
-        background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+        box-shadow: 0 8px 30px rgba(15, 36, 64, 0.7);
+        background: linear-gradient(135deg, #2d5a87 0%, #1e3a5f 100%) !important;
+        border-color: rgba(96, 165, 250, 0.6) !important;
     }
+    .stButton > button:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── Кнопки скачивания ── */
     .stDownloadButton > button {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        border: none;
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
         border-radius: 12px;
         padding: 0.6rem 1.4rem;
         font-weight: 600;
         font-size: 0.85rem;
         transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+        box-shadow: 0 4px 20px rgba(6, 78, 59, 0.5);
         width: 100%;
     }
     .stDownloadButton > button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(16, 185, 129, 0.6);
+        box-shadow: 0 8px 30px rgba(6, 78, 59, 0.7);
+        background: linear-gradient(135deg, #065f46 0%, #047857 100%) !important;
+        border-color: rgba(16, 185, 129, 0.6) !important;
     }
 
-    /* ── Загрузчик файлов ── */
     [data-testid="stFileUploader"] {
         background: rgba(255, 255, 255, 0.05);
         border: 2px dashed rgba(255, 255, 255, 0.2);
@@ -96,11 +93,8 @@ st.markdown(
         border-color: rgba(96, 165, 250, 0.6);
         background: rgba(96, 165, 250, 0.05);
     }
-    [data-testid="stFileUploadDropzone"] {
-        background: transparent !important;
-    }
+    [data-testid="stFileUploadDropzone"] { background: transparent !important; }
 
-    /* ── Метрики ── */
     [data-testid="stMetric"] {
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -121,7 +115,6 @@ st.markdown(
         color: #93c5fd !important;
     }
 
-    /* ── Карточки файлов ── */
     .card {
         background: rgba(255, 255, 255, 0.06);
         border: 1px solid rgba(255, 255, 255, 0.12);
@@ -136,7 +129,6 @@ st.markdown(
     .card-warn { border-left: 3px solid #f59e0b; }
     .card-err  { border-left: 3px solid #ef4444; }
 
-    /* ── Бейджи ── */
     .badge {
         display: inline-block;
         padding: 0.2em 0.7em;
@@ -150,7 +142,6 @@ st.markdown(
     .badge-yellow { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.4); }
     .badge-blue   { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
 
-    /* ── Заголовки и текст ── */
     .hero-title {
         font-size: 2.8rem;
         font-weight: 800;
@@ -176,7 +167,6 @@ st.markdown(
         margin-bottom: 0.8rem;
     }
 
-    /* ── Шаги / Онбординг ── */
     .step-box {
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.1);
@@ -204,7 +194,6 @@ st.markdown(
         margin-bottom: 0.9rem;
     }
 
-    /* ── Инпуты, селекты, текстовые поля ── */
     input, select, .stSelectbox > div > div, .stTextInput > div > div > input, [data-testid="stTextInputRootElement"] input {
         background: #1e3a5f !important;
         background-color: #1e3a5f !important;
@@ -218,23 +207,18 @@ st.markdown(
         border-color: #60a5fa !important;
         box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3) !important;
     }
-    
     input::placeholder, .stTextInput input::placeholder, [data-testid="stTextInputRootElement"] input::placeholder {
         color: #93c5fd !important;
         opacity: 0.85 !important;
     }
-    
     div[data-baseweb="select"] > div {
         background-color: #1e3a5f !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 12px !important;
     }
-    div[data-baseweb="select"] * {
-        color: #ffffff !important;
-    }
-    
-    /* ── File Uploader ── */
+    div[data-baseweb="select"] * { color: #ffffff !important; }
+
     [data-testid="stFileUploader"] {
         background-color: #1e3a5f !important;
         background: #1e3a5f !important;
@@ -244,11 +228,9 @@ st.markdown(
     [data-testid="stFileUploader"] *, 
     [data-testid="stFileUploader"] span, 
     [data-testid="stFileUploader"] p, 
-    [data-testid="stFileUploader"] label {
-        color: #f4f4f5 !important;
-    }
+    [data-testid="stFileUploader"] label { color: #f4f4f5 !important; }
     [data-testid="stFileUploader"] button {
-        background-color: #2d5a87 !important;
+        background-color: #0f2440 !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 10px !important;
@@ -256,19 +238,12 @@ st.markdown(
         transition: background 0.2s !important;
     }
     [data-testid="stFileUploader"] button:hover {
-        background-color: #3d7ab5 !important;
+        background-color: #1e3a5f !important;
         border-color: #60a5fa !important;
     }
-    
-    [data-testid="stFileUploader"] svg {
-        fill: #93c5fd !important;
-        color: #93c5fd !important;
-    }
+    [data-testid="stFileUploader"] svg { fill: #93c5fd !important; color: #93c5fd !important; }
 
-    /* ── Табы ── */
-    [data-testid="stTabs"] > div:first-child {
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
+    [data-testid="stTabs"] > div:first-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
     button[data-baseweb="tab"] {
         background: transparent !important;
         color: #93c5fd !important;
@@ -289,14 +264,10 @@ st.markdown(
     }
 
     hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1.5rem 0; }
-    
-    /* ── Скроллбар ── */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #1e3a5f; }
     ::-webkit-scrollbar-thumb { background: rgba(96, 165, 250, 0.5); border-radius: 999px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(147, 197, 253, 0.7); }
-    
-    /* ── DataFrame таблица ── */
     div[data-testid="stDataFrame"] {
         background: rgba(255, 255, 255, 0.05);
         border-radius: 12px;
@@ -308,14 +279,14 @@ st.markdown(
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 2. СИНОНИМЫ И КЛЮЧЕВЫЕ СЛОВА (ДЕТЕКТОР КОЛОНОК)
+# 2. СИНОНИМЫ И КЛЮЧЕВЫЕ СЛОВА
 # ─────────────────────────────────────────────────────────────────────────────
 ARTICLE_KW = ["артикул", "арт", "sku", "код", "кодтовара", "код товара", "номер", "part", "oem", "деталь", "catalog", "article", "шифр", "партномер"]
 BRAND_KW   = ["бренд", "brand", "производитель", "произв", "марка", "фирма", "изготовитель", "maker", "manufacturer", "вендор", "make"]
 PRICE_KW   = ["цена", "price", "стоимость", "прайс", "закуп", "розница", "опт", "закупка", "cost", "ррц", "rub", "грн", "uah", "usd", "сумма", "ценасоскидкой"]
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (ПАРСИНГ, НОРМАЛИЗАЦИЯ, ЭКСПОРТ)
+# 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 # ─────────────────────────────────────────────────────────────────────────────
 def normalize_header(h: str) -> str:
     return re.sub(r"[\s_\-\.\,\/\(\)]+", "", str(h).strip().lower())
@@ -339,32 +310,42 @@ def detect_column(columns: list[str], keywords: list[str]) -> str | None:
                 best_col = col
     return best_col
 
-def clean_price(val) -> float | None:
-    if val is None or (isinstance(val, float) and np.isnan(val)):
-        return None
-    if isinstance(val, (int, float)):
-        return float(val) if val > 0 else None
-    s = str(val).strip()
-    s = re.sub(r"[\s\u00a0\u202f\u2009]+", "", s)
-    s = re.sub(r"[₽$€£¥₴руб\.RUBrub]+", "", s)
-    if not s:
-        return None
-    if "," in s and "." in s:
-        if s.rfind(",") > s.rfind("."):
-            s = s.replace(".", "").replace(",", ".")
-        else:
-            s = s.replace(",", "")
-    elif "," in s:
-        parts = s.split(",")
-        if len(parts) == 2 and len(parts[1]) <= 2:
-            s = s.replace(",", ".")
-        else:
-            s = s.replace(",", "")
-    try:
-        res = float(s)
-        return res if res > 0 else None
-    except ValueError:
-        return None
+# ВЕКТОРИЗОВАННАЯ очистка цен — критично для 300k+ строк
+def clean_prices_vectorized(series: pd.Series) -> pd.Series:
+    """Преобразует Series со строковыми ценами в float. Неверные → NaN."""
+    s = series.astype(str).str.strip()
+    # Убрать пробельные символы (включая неразрывные)
+    s = s.str.replace(r"[\s\u00a0\u202f\u2009]+", "", regex=True)
+    # Убрать символы валют и буквенные суффиксы
+    s = s.str.replace(r"[₽$€£¥₴руб\.RUBrub]+", "", regex=True, case=False)
+    # Пустые → NaN
+    s = s.replace({"": np.nan, "nan": np.nan, "none": np.nan, "None": np.nan})
+    
+    # Обработка запятых и точек
+    has_comma = s.str.contains(",", na=False)
+    has_dot = s.str.contains(".", na=False, regex=False)
+    
+    # Случай 1: есть и запятая, и точка → разделитель тот, что правее
+    both = has_comma & has_dot
+    comma_right = s.str.rfind(",") > s.str.rfind(".")
+    mask1 = both & comma_right  # запятая — десятичный разделитель
+    mask2 = both & ~comma_right  # точка — десятичный разделитель
+    
+    # Случай 2: только запятая
+    only_comma = has_comma & ~has_dot
+    # Проверяем: если после запятой ≤2 цифр → десятичный разделитель
+    decimal_comma = only_comma & s.str.contains(r",\d{1,2}$", na=False, regex=True)
+    
+    # Применяем замены
+    result = s.copy()
+    result[mask1] = result[mask1].str.replace(".", "", regex=False).str.replace(",", ".", regex=False)
+    result[mask2] = result[mask2].str.replace(",", "", regex=False)
+    result[decimal_comma] = result[decimal_comma].str.replace(",", ".", regex=False)
+    result[only_comma & ~decimal_comma] = result[only_comma & ~decimal_comma].str.replace(",", "", regex=False)
+    
+    # Преобразуем в numeric
+    numeric = pd.to_numeric(result, errors="coerce")
+    return numeric.where(numeric > 0, np.nan)
 
 def find_header_row(df_raw: pd.DataFrame) -> int:
     best_idx = 0
@@ -469,36 +450,39 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
         result["message"] = f"❌ Не найдены обязательные столбцы (Артикул: {bool(col_art)}, Цена: {bool(col_price)})"
         return result
 
-    rows = []
+    # ── ВЕКТОРИЗОВАННАЯ обработка (вместо iterrows) ──
     source = Path(uploaded_file.name).stem
-
-    for _, row in df.iterrows():
-        art_val = str(row.get(col_art, "")).strip()
-        if not art_val or art_val.lower() in ("nan", "none", ""):
-            continue
-
-        price_val = clean_price(row.get(col_price))
-        if price_val is None:
-            continue
-
-        brand_val = ""
-        if col_brand:
-            bv = str(row.get(col_brand, "")).strip()
-            brand_val = "" if bv.lower() in ("nan", "none", "") else bv
-
-        rows.append({
-            "Артикул": art_val,
-            "Бренд": brand_val if brand_val else "—",
-            "Цена": price_val,
-            "Источник": source,
-        })
-
-    if not rows:
+    
+    # Артикул: строка, strip, фильтр мусора
+    art_series = df[col_art].astype(str).str.strip()
+    invalid_art = art_series.isin(["", "nan", "none", "NaN", "None", "nan"]) | art_series.isna()
+    
+    # Цена: векторизованная очистка
+    price_series = clean_prices_vectorized(df[col_price])
+    
+    # Бренд
+    if col_brand:
+        brand_series = df[col_brand].astype(str).str.strip()
+        brand_series = brand_series.where(~brand_series.isin(["", "nan", "none", "NaN", "None"]), "—")
+        brand_series = brand_series.replace({"": "—", np.nan: "—"})
+    else:
+        brand_series = pd.Series("—", index=df.index)
+    
+    # Сборка валидных строк
+    valid_mask = ~invalid_art & price_series.notna()
+    
+    if valid_mask.sum() == 0:
         result["message"] = "⚠️ Нет строк с валидными артикулами и ценами"
         result["status"] = "warning"
         return result
-
-    df_clean = pd.DataFrame(rows)
+    
+    df_clean = pd.DataFrame({
+        "Артикул": art_series[valid_mask].values,
+        "Бренд": brand_series[valid_mask].values,
+        "Цена": price_series[valid_mask].values,
+        "Источник": source,
+    }).reset_index(drop=True)
+    
     result["df_clean"] = df_clean
     result["row_count"] = len(df_clean)
     result["status"] = "ok"
@@ -506,18 +490,41 @@ def parse_price_file(uploaded_file, forced_cols=None) -> dict:
     return result
 
 def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
+    """
+    Оптимизированная агрегация для больших датасетов.
+    """
+    if df_all.empty:
+        return pd.DataFrame()
+    
     df = df_all.copy()
+    
+    # Фильтр битых артикулов (на всякий случай)
+    df = df[
+        df["Артикул"].notna() & 
+        (df["Артикул"].str.strip() != "") & 
+        (~df["Артикул"].str.strip().str.lower().isin(["nan", "none"]))
+    ].copy()
+    
+    if df.empty:
+        return pd.DataFrame()
+    
+    # Дедупликация: один артикул + один источник = одна запись (мин. цена)
+    df = df.sort_values("Цена").drop_duplicates(subset=["Артикул", "Источник"], keep="first")
+    
+    # Нормализация ключа
     df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_]", "", regex=True)
-
-    grp = df.groupby("_key")["Цена"].agg(
-        Цена_мин="min",
-        Цена_макс="max",
-        Предложений="count"
+    
+    # УНИКАЛЬНЫЕ источники + мин/макс цены
+    grp = df.groupby("_key").agg(
+        Цена_мин=("Цена", "min"),
+        Цена_макс=("Цена", "max"),
+        Предложений=("Источник", "nunique")
     ).reset_index()
 
+    # Индекс минимальной цены
     idx_min = df.groupby("_key")["Цена"].idxmin()
     df_best = df.loc[idx_min].copy()
-    df_best = df_best.merge(grp, on="_key")
+    df_best = df_best.merge(grp, on="_key", how="left")
     df_best = df_best.drop(columns=["_key", "Цена"], errors="ignore")
     df_best = df_best.rename(columns={"Цена_мин": "Цена"})
 
@@ -580,7 +587,7 @@ def to_excel_bytes(df: pd.DataFrame) -> bytes:
 def to_csv_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False, encoding="utf-8-sig", sep=";").encode("utf-8-sig")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # 4. СОСТОЯНИЕ (SESSION STATE)
 # ─────────────────────────────────────────────────────────────────────────────
 if "parsed_results" not in st.session_state:
@@ -590,9 +597,9 @@ if "df_final" not in st.session_state:
 if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 # 5. САЙДБАР
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
         """
@@ -607,7 +614,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.markdown('<div class="section-title"> Источник данных</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">📂 Источник данных</div>', unsafe_allow_html=True)
     
     sim_path = st.text_input("Путь к папке", value=r"C:\Прайсы\2026\ или /home/user/prices", label_visibility="collapsed")
 
@@ -700,7 +707,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-# ────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
 # 6. ОБРАБОТКА ПО КНОПКЕ АНАЛИЗ
 # ─────────────────────────────────────────────────────────────────────────────
 if 'btn_analyze' not in locals():
@@ -710,9 +717,11 @@ if btn_analyze and st.session_state.uploaded_objects:
     results = []
     all_frames = []
     
-    prog = st.progress(0, text="🔄 Интеллектуальный анализ прайс-листов...")
+    total_files = len(st.session_state.uploaded_objects)
+    prog = st.progress(0, text=f"🔄 Интеллектуальный анализ прайс-листов (0/{total_files})...")
+    
     for idx, uf in enumerate(st.session_state.uploaded_objects):
-        prog.progress((idx + 1) / len(st.session_state.uploaded_objects), text=f"Анализ файла: {uf.name}")
+        prog.progress((idx) / total_files, text=f"Анализ файла {idx+1}/{total_files}: {uf.name}")
         
         forced = {}
         if st.session_state.get(f"ovr_art_{uf.name}"):
@@ -727,7 +736,7 @@ if btn_analyze and st.session_state.uploaded_objects:
         if res["status"] == "ok" and not res["df_clean"].empty:
             all_frames.append(res["df_clean"])
             
-    prog.empty()
+    prog.progress(1.0, text="✅ Агрегация результатов...")
     st.session_state.parsed_results = results
     
     if all_frames:
@@ -735,6 +744,8 @@ if btn_analyze and st.session_state.uploaded_objects:
         st.session_state.df_final = aggregate_best_prices(df_all)
     else:
         st.session_state.df_final = pd.DataFrame()
+    
+    prog.empty()
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7. ГЛАВНЫЙ ИНТЕРФЕЙС
@@ -797,7 +808,7 @@ if df_final.empty and not st.session_state.parsed_results:
         )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.info("👈 **Начните работу:** выберите файлы слева или нажмите **« Загрузить демо-папку»** для быстрого теста.", icon="💡")
+    st.info("👈 **Начните работу:** выберите файлы слева или нажмите **«🚀 Загрузить демо-папку»** для быстрого теста.", icon="💡")
     st.stop()
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -840,7 +851,7 @@ for res in st.session_state.parsed_results:
     )
 
     if res["status"] in ("error", "warning") or not res["col_art"] or not res["col_price"]:
-        with st.expander(f"🔧 Настроить столбцы вручную для «{res['name']}»"):
+        with st.expander(f" Настроить столбцы вручную для «{res['name']}»"):
             try:
                 raw_test = None
                 for uf in st.session_state.uploaded_objects:
@@ -867,21 +878,24 @@ for res in st.session_state.parsed_results:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 9. МЕТРИКИ (KPI DASHBOARD)
+# 9. МЕТРИКИ (KPI DASHBOARD) — ДОБАВЛЕНА СУММА МИН. ЦЕН
 # ─────────────────────────────────────────────────────────────────────────────
 if not df_final.empty:
     st.markdown('<div class="section-title">📊 Сводные метрики агрегатора</div>', unsafe_allow_html=True)
 
     total_unique = len(df_final)
-    total_offers = df_final["Предложений"].sum() if "Предложений" in df_final.columns else 0
+    total_offers = int(df_final["Предложений"].sum()) if "Предложений" in df_final.columns else 0
     total_savings = df_final["Экономия_руб"].sum() if "Экономия_руб" in df_final.columns else 0
     avg_price = df_final["Цена"].mean()
+    # ★ ТОЧНАЯ СУММА МИНИМАЛЬНЫХ ЦЕН ПО ВСЕМ SKU (бюджет закупки)
+    total_min_sum = df_final["Цена"].sum()
 
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2, m3, m4, m5 = st.columns(5)
     m1.metric(" Уникальных SKU", f"{total_unique:,}")
-    m2.metric("📋 Всего предложений", f"{int(total_offers):,}")
+    m2.metric("📊 Источников", f"{total_offers:,}", help="Сумма уникальных поставщиков по всем SKU")
     m3.metric("💰 Средняя мин. цена", f"{avg_price:,.0f} ₽")
-    m4.metric("📉 Суммарная экономия", f"{total_savings:,.0f} ₽", delta="Лучшие цены со всех прайсов")
+    m4.metric("💵 Сумма мин. цен", f"{total_min_sum:,.0f} ₽", help="Точная сумма минимальных цен по всем SKU — бюджет закупки")
+    m5.metric("📉 Суммарная экономия", f"{total_savings:,.0f} ₽", help="Σ(макс−мин) по всем SKU")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -891,12 +905,12 @@ if not df_final.empty:
 if not df_final.empty:
     
     tab_table, tab_analysis, tab_sources = st.tabs([
-        "📋 Итоговый прайс", "📈 Анализ и графики", " По источникам"
+        "📋 Итоговый прайс", "📈 Анализ и графики", "🏢 По источникам"
     ])
 
     # ── TAB 1: ТАБЛИЦА ──
     with tab_table:
-        st.markdown('<div class="section-title"> Итоговый прайс (минимальная цена + источник)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🏆 Итоговый прайс (минимальная цена + источник)</div>', unsafe_allow_html=True)
 
         f_col1, f_col2, f_col3 = st.columns([3, 2, 2])
         with f_col1:
@@ -934,7 +948,7 @@ if not df_final.empty:
                 "Бренд": st.column_config.TextColumn("🏷 Бренд", width="medium"),
                 "Цена": st.column_config.NumberColumn("💰 Мин. цена (₽)", format="%.2f ₽", width="small"),
                 "Источник": st.column_config.TextColumn("📁 Источник (Прайс)", width="large"),
-                "Предложений": st.column_config.NumberColumn("📊 Предл.", width="small", help="Кол-во поставщиков"),
+                "Предложений": st.column_config.NumberColumn("📊 Источников", width="small", help="Кол-во уникальных поставщиков"),
                 "Экономия_руб": st.column_config.NumberColumn("💚 Экономия (₽)", format="%.2f ₽", width="small"),
                 "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
             }
@@ -990,15 +1004,16 @@ if not df_final.empty:
             top_brands.columns = ["Бренд", "Артикулов"]
             st.bar_chart(top_brands.set_index("Бренд"), color="#34d399", height=300)
 
-    # ─ TAB 3: ПО ИСТОЧНИКАМ ──
+    # ── TAB 3: ПО ИСТОЧНИКАМ ──
     with tab_sources:
-        st.markdown('<div class="section-title"> Статистика по источникам (поставщикам)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">🏢 Статистика по источникам (поставщикам)</div>', unsafe_allow_html=True)
 
         src_stats = df_final.groupby("Источник").agg(
             Побед=("Источник", "count"),
             Мин_цена=("Цена", "min"),
             Средн_цена=("Цена", "mean"),
             Макс_цена=("Цена", "max"),
+            Сумма_мин=("Цена", "sum"),
             Экономия=("Экономия_руб", "sum"),
         ).round(2).sort_values("Побед", ascending=False).reset_index()
 
@@ -1013,6 +1028,7 @@ if not df_final.empty:
                 "Мин_цена": st.column_config.NumberColumn("Min ₽", format="%.0f ₽"),
                 "Средн_цена": st.column_config.NumberColumn("Ср. ₽", format="%.0f ₽"),
                 "Макс_цена": st.column_config.NumberColumn("Max ₽", format="%.0f ₽"),
+                "Сумма_мин": st.column_config.NumberColumn("💵 Сумма мин. цен ₽", format="%.0f ₽", help="Сумма минимальных цен по позициям этого источника"),
                 "Экономия": st.column_config.NumberColumn("💚 Экономия ₽", format="%.0f ₽"),
             }
         )
