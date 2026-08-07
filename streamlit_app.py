@@ -49,8 +49,8 @@ st.markdown(
     [data-testid="stSidebar"] h3 {
         color: #ffffff !important;
     }
-    [data-testid="stToolbar"] { display: none !important; }
-    [data-testid="stDecoration"] { display: none !important; }
+    [data-testid="stToolbar"] { display: flex; !important; }
+    [data-testid="stDecoration"] { display: flex !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
 
     /* ── ФИКС КНОПКИ СВЕРНУТЬ / РАЗВЕРНУТЬ САЙДБАР ── */
