@@ -949,10 +949,10 @@ if "df_final" not in st.session_state:
 if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
-# ─────────────────────────────────────────────────────────────────────────────
-# 5. САЙДБАР
-# ─────────────────────────────────────────────────────────────────────────────
-with st.sidebar:
+# ═════════════════════════════════════════════════════════════════════════════
+# 5. ПАНЕЛЬ УПРАВЛЕНИЯ (в основном контенте — видна всегда)
+# ═════════════════════════════════════════════════════════════════════════════
+with st.container():
     st.markdown(
         """
         <div style="display:flex;align-items:center;gap:.75rem;padding:.5rem 0 1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:1.5rem;">
