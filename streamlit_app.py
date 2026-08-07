@@ -5,6 +5,7 @@ import glob
 from pathlib import Path
 from typing import Optional, Tuple
 import re
+from io import BytesIO
 
 # ======================= PAGE CONFIG =======================
 st.set_page_config(
@@ -163,11 +164,12 @@ st.markdown("""
 
 def format_size(size_bytes: int) -> str:
     """Format file size to human readable."""
+    size = float(size_bytes)
     for unit in ['B', 'KB', 'MB', 'GB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} TB"
+        if size < 1024.0:
+            return f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} TB"
 
 
 def detect_column(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
@@ -181,35 +183,42 @@ def detect_column(df: pd.DataFrame, keywords: list[str]) -> Optional[str]:
 
 
 def clean_price_string(val) -> Optional[float]:
-    """Clean price string to float."""
+    """Clean price string to float. Исправлено: корректная обработка RU и US форматов."""
     if pd.isna(val):
         return None
     if isinstance(val, (int, float)):
         return float(val)
+    
     s = str(val).strip().replace(' ', '').replace('\xa0', '')
     if not s:
         return None
-    # Remove currency symbols, keep numbers, decimal separators, minus
+    
+    # Оставляем только цифры, точки, запятые и минус
     s = re.sub(r'[^\d.,\-]', '', s)
-    # Try to parse with comma as decimal
+    
     try:
         if ',' in s and '.' in s:
-            # Both present, assume dot is thousands separator
-            s = s.replace('.', '').replace(',', '.')
+            # Определяем, какой символ идет последним (он является десятичным разделителем)
+            if s.rfind(',') > s.rfind('.'):
+                # Формат RU: 1.234,56 -> 1234.56
+                s = s.replace('.', '').replace(',', '.')
+            else:
+                # Формат US: 1,234.56 -> 1234.56
+                s = s.replace(',', '')
         elif ',' in s:
-            # Only comma - check if it looks like decimal
+            # Только запятая. Проверяем, является ли она десятичной
             parts = s.split(',')
             if len(parts[-1]) <= 2:
                 s = s.replace(',', '.')
             else:
                 s = s.replace(',', '')
         return float(s)
-    except:
+    except Exception:
         return None
 
 
 def read_file_safe(filepath: str) -> Optional[pd.DataFrame]:
-    """Try to read a file (xlsx, csv, xls)."""
+    """Try to read a file (xlsx, csv, xls). Исправлено: замена голого except на Exception."""
     try:
         if filepath.lower().endswith(('.xlsx', '.xls')):
             return pd.read_excel(filepath)
@@ -218,7 +227,7 @@ def read_file_safe(filepath: str) -> Optional[pd.DataFrame]:
             for enc in ['utf-8', 'cp1251', 'windows-1251', 'koi8-r']:
                 try:
                     return pd.read_csv(filepath, encoding=enc)
-                except:
+                except Exception:
                     continue
             return pd.read_csv(filepath)  # last attempt
     except Exception:
@@ -233,12 +242,9 @@ def process_folder(folder_path: str) -> Tuple[Optional[pd.DataFrame], list[dict]
     files_data = []
     all_rows = []
 
-    # Find all xlsx, xls, csv files
-    exts = ['*.xlsx', '*.xls', '*.csv']
-    files = []
-    for ext in exts:
-        files.extend(glob.glob(os.path.join(folder_path, ext)))
-        files.extend(glob.glob(os.path.join(folder_path, '**', ext), recursive=True))
+    # Исправлено: более надежный поиск через pathlib
+    path = Path(folder_path)
+    files = [str(p) for p in path.rglob('*') if p.suffix.lower() in ['.xlsx', '.xls', '.csv']]
     files = list(set(files))
 
     if not files:
@@ -294,7 +300,8 @@ def process_folder(folder_path: str) -> Tuple[Optional[pd.DataFrame], list[dict]
         # Build clean dataframe
         source_name = os.path.splitext(fname)[0]
         
-        sub = df[[col_art, col_price] + ([col_brand] if col_brand else [])].copy()
+        cols_to_keep = [col_art, col_price] + ([col_brand] if col_brand else [])
+        sub = df[cols_to_keep].copy()
         sub.columns = ['артикул', 'цена', 'бренд'] if col_brand else ['артикул', 'цена']
         sub['цена'] = sub['цена'].apply(clean_price_string)
         sub = sub.dropna(subset=['артикул', 'цена'])
@@ -353,7 +360,6 @@ def download_file(df: pd.DataFrame, fmt: str) -> bytes:
     if fmt == 'csv':
         return df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
     else:
-        from io import BytesIO
         buf = BytesIO()
         df.to_excel(buf, index=False)
         return buf.getvalue()
@@ -393,7 +399,7 @@ with st.sidebar:
         try:
             item_count = len(os.listdir(folder))
             st.info(f"📦 В папке: {item_count} элементов")
-        except:
+        except Exception:
             pass
     elif folder:
         st.error("❌ Папка не найдена. Проверьте путь.")
@@ -548,7 +554,7 @@ else:
                 column_config={
                     "Артикул": st.column_config.TextColumn("Артикул", width="120px"),
                     "Бренд": st.column_config.TextColumn("Бренд", width="140px"),
-                    "Цена": st.column_config.NumberColumn("Цена (₽)", format=f"₽ {:,.{price_decimals}f}"),
+                    "Цена": st.column_config.NumberColumn("Цена (₽)", format=f"%.{price_decimals}f ₽"),
                     "Источник": st.column_config.TextColumn("Источник (файл)", width="180px"),
                 }
             )
@@ -563,6 +569,7 @@ else:
             
             csv_data = download_file(result_df, 'csv')
             xlsx_data = download_file(result_df, 'excel')
+            tsv_data = result_df.to_csv(index=False, sep='\t', encoding='utf-8-sig')
             
             with dl1:
                 st.download_button(
@@ -583,13 +590,14 @@ else:
                 )
             
             with dl3:
+                # Исправлено: удалена ложь про "копирование в буфер". Теперь честно указано скачивание TSV.
                 st.download_button(
-                    label="📋 Скопировать в буфер",
-                    data=result_df.to_csv(index=False, sep='\t'),
+                    label="📥 Скачать TSV",
+                    data=tsv_data,
                     file_name="analysis_result.tsv",
                     mime="text/tab-separated-values",
                     use_container_width=True,
-                    help="Скопировать как TSV для вставки в Excel"
+                    help="Скачать в формате TSV для удобной вставки в Excel"
                 )
 
             # Tips
