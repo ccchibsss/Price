@@ -53,6 +53,34 @@ st.markdown(
     [data-testid="stDecoration"] { display: none !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
 
+    /* ── Кнопка разворачивания свёрнутого сайдбара (должна быть ВСЕГДА видна) ── */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        z-index: 999999 !important;
+        background: #0f2440 !important;
+        border: 1px solid rgba(96, 165, 250, 0.55) !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
+        padding: 2px !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button {
+        background: transparent !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] svg,
+    [data-testid="stSidebarCollapsedControl"] button svg,
+    header[data-testid="stHeader"] svg,
+    header[data-testid="stHeader"] button svg {
+        fill: #7dd3fc !important;
+        color: #7dd3fc !important;
+        opacity: 1 !important;
+    }
+    header[data-testid="stHeader"] button {
+        background: #0f2440 !important;
+        border-radius: 10px !important;
+    }
+
     /* ── Кнопки управления (ТЁМНО-СИНИЕ) ── */
     .stButton > button {
         background: linear-gradient(135deg, #1e3a5f 0%, #0f2440 100%) !important;
