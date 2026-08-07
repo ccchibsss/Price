@@ -1,949 +1,1139 @@
-# -*- coding: utf-8 -*-
-"""
-МОНОЛИТНОЕ ПРИЛОЖЕНИЕ ПРАЙС-АНАЛИЗАТОР
-Стиль Streamlit Premium — темная тема, фирменные градиенты, полная функциональность.
-"""
-import streamlit as st
-import pandas as pd
-import os
-import glob
-import re
-import tempfile
-from io import BytesIO
-from typing import Optional, Tuple
-from datetime import datetime
-# ============================================================
-# НАСТРОЙКА СТРАНИЦЫ
-# ============================================================
-st.set_page_config(
-    page_title="📊 Прайс-анализатор",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-# ============================================================
-# КАСТОМНЫЙ CSS — стильный интерфейс в стиле Streamlit Premium
-# ============================================================
-st.markdown("""
-<style>
-  /* ======= Общие сбросы ======= */
-  * {
-    box-sizing: border-box;
-  }
-  
-  /* Скрываем стандартный header Streamlit, делаем свой */
-  .css-1d391kg { padding-top: 0 !important; }
-  
-  /* Индивидуальный скроллбар */
-  ::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #0f1117;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #2d3139;
-    border-radius: 4px;
-    transition: background 0.2s ease;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3d4149;
-  }
-  
-  /* Контейнер приложения */
-  .app-container {
-    background-color: #0f1117;
-    min-height: 100vh;
-  }
-  
-  /* Заголовок-баннер */
-  .hero-banner {
-    background: linear-gradient(135deg, #1e1b4b 0%, #1a1c30 50%, #0f172a 100%);
-    border-radius: 18px;
-    padding: 2rem 2.5rem;
-    margin-bottom: 1.75rem;
-    border: 1px solid #1e2230;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero-banner::after {
-    content: '';
-    position: absolute;
-    top: -40px;
-    right: -80px;
-    width: 280px;
-    height: 280px;
-    background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-  .hero-banner::before {
-    content: '';
-    position: absolute;
-    bottom: -60px;
-    right: 60px;
-    width: 180px;
-    height: 180px;
-    background: radial-gradient(circle, rgba(118,75,162,0.12) 0%, transparent 70%);
-    border-radius: 50%;
-  }
-  
-  .banner-gradient-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 60%, #a78bfa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  /* Карточки статистики */
-  .stat-card {
-    background: linear-gradient(180deg, #181b24 0%, #13161e 100%);
-    border: 1px solid #2a2d38;
-    border-radius: 14px;
-    padding: 1.25rem;
-    transition: all 0.2s linear;
-    position: relative;
-    overflow: hidden;
-  }
-  .stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
-    opacity: 0;
-    transition: opacity 0.25s ease;
-  }
-  .stat-card:hover::before {
-    opacity: 1;
-  }
-  .stat-card:hover {
-    border-color: #3a3d48;
-    transform: translateY(-1px);
-  }
-  
-  .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-  }
-  
-  .stat-label {
-    font-size: 0.8rem;
-    color: #7d808a;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-  
-  /* Карточка — список файлов */
-  .file-card {
-    background: #181b24;
-    border: 1px solid #2a2d38;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.35rem;
-    transition: border-color 0.2s ease;
-  }
-  .file-card.success { border-left: 3px solid #10b981; }
-  .file-card.warning { border-left: 3px solid #f59e0b; }
-  .file-card.error   { border-left: 3px solid #ef4444; }
-  
-  /* Кнопки в стиле баннера */
-  .btn-gradient {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.6rem 1.2rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    letter-spacing: 0.01em;
-  }
-  .btn-gradient:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102,126,234,0.35);
-  }
-  
-  /* Ввод пути */
-  .path-input {
-    background: #13161e;
-    border: 1px solid #2a2d38;
-    border-radius: 10px;
-    padding: 0.7rem 1rem;
-    color: #e4e4e7;
-    font-size: 0.9rem;
-    width: 100%;
-    transition: border-color 0.2s ease;
-  }
-  .path-input:focus {
-    border-color: #667eea !important;
-    outline: none;
-  }
-  
-  /* Метки статусов */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.2rem 0.65rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-  }
-  
-  /* Таблица */
-  .dataframe-wrapper {
-    background: #13161e;
-    border: 1px solid #2a2d38;
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  
-  /* Загрузка */
-  .spinner-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem 0;
-    gap: 1rem;
-  }
-  .spinner {
-    width: 42px;
-    height: 42px;
-    border: 4px solid #1e1e2a;
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-  
-  /* Дисклеймеры и тосты */
-  .info-card {
-    background: #181b24;
-    border: 1px solid #2a2d38;
-    border-radius: 12px;
-    padding: 1.25rem;
-  }
-  
-  .toast {
-    padding: 0.85rem 1.25rem;
-    border-radius: 10px;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-  }
-  
-  /* Стилизация загрузки filer */
-  .stFileUploader { width: 100%; }
-  .stFileUploader > div { border: 2px dashed #2a2d38 !important; border-radius: 14px !important; background: #13161e !important; }
-</style>
-""", unsafe_allow_html=True)
-# ============================================================
-# ПОЛЕЗНЫЕ ФУНКЦИИ
-# ============================================================
-def format_size(size_bytes: int) -> str:
-    """Преобразовать байты в человекочитаемый размер."""
-    for unit in ['B', 'KB', 'MB', 'GB']:
-        if size_bytes < 1024.0:
-            return f"{size_bytes:.1f} {unit}"
-        size_bytes /= 1024.0
-    return f"{size_bytes:.1f} TB"
-def detect_column(df: pd.DataFrame, keywords: list) -> Optional[str]:
-    """Найти в DataFrame колонку по ключевым словам (частичное совпадение, игнорирование регистра)."""
-    for col in df.columns:
-        col_lower = str(col).strip().lower()
-        for kw in keywords:
-            if kw.lower() in col_lower:
-                return col
-    return None
-def clean_price(val) -> Optional[float]:
-    """
-    Очистить значение цены от валют, пробелов, разделителей тысяч.
-    Вернуть float или None.
-    """
-    if pd.isna(val):
-        return None
-    if isinstance(val, (int, float)):
-        return float(val) if val > 0 else None
-    s = str(val).strip().replace('\xa0', '').replace(' ', '')
-    if not s:
-        return None
-    # Удаляем всё кроме цифр, точки, запятой, минуса
-    s = re.sub(r'[^\d.,\-]', '', s)
-    if not s:
-        return None
-    try:
-        # Определяем разделитель
-        if ',' in s and '.' in s:
-            # Оба есть — считаем, что точка разделитель тысяч (например 1.250,50)
-            s = s.replace('.', '').replace(',', '.')
-        elif ',' in s:
-            parts = s.split(',')
-            if len(parts[-1]) <= 2:
-                # Запятая как десятичная: 1250,50 -> 1250.50
-                s = s.replace(',', '.')
-            else:
-                # Запятая как разделитель тысяч: 1,250 -> 1250
-                s = s.replace(',', '')
-        elif '.' in s and s.count('.') > 1:
-            s = s.replace('.', '')
-        return float(s)
-    except (ValueError, TypeError):
-        return None
-def read_file(filepath: str) -> Optional[pd.DataFrame]:
-    """Прочитать xlsx, xls или csv с попыткой различных кодировок."""
-    try:
-        if filepath.lower().endswith(('.xlsx', '.xls')):
-            return pd.read_excel(filepath)
-        # CSV — пробуем несколько кодировок
-        for enc in ['utf-8', 'cp1251', 'windows-1251', 'koi8-r', 'iso-8859-1']:
-            try:
-                df = pd.read_csv(filepath, encoding=enc)
-                return df
-            except (UnicodeDecodeError, UnicodeError):
-                continue
-        return pd.read_csv(filepath)  # fallback (может выбросить ошибку)
-    except Exception:
-        return None
-# ============================================================
-# ОБРАБОТКА ПАПКИ — основа монолитного приложения
-# ============================================================
-def process_folder(folder_path: str) -> Tuple[Optional[pd.DataFrame], list]:
-    """
-    Скандалит все xlsx/xls/csv файлы в папке, ищет колонки Артикул/Бренд/Цена,
-    объединяет, находит минимум цены по каждому артикулу, добавляет Источник.
+import React, { useState, useRef, useMemo } from 'react';
+import * as XLSX from 'xlsx';
+import confetti from 'canvas-confetti';
+import { 
+  FolderOpen, 
+  FileSpreadsheet, 
+  Download, 
+  Search, 
+  ArrowUpDown, 
+  Trash2, 
+  Sparkles, 
+  CheckCircle, 
+  AlertTriangle, 
+  Info,
+  Layers,
+  TrendingDown,
+  Activity,
+  FileCode,
+  Copy,
+  Database
+} from 'lucide-react';
+
+// ======================= TYPES & INTERFACES =======================
+interface ParsedRow {
+  article: string;
+  brand: string;
+  price: number;
+  source: string;
+}
+
+interface FileStatus {
+  name: string;
+  size: string;
+  status: 'success' | 'warning' | 'error';
+  message: string;
+  detectedColumns: {
+    article: string | null;
+    brand: string | null;
+    price: string | null;
+  };
+  rowCount: number;
+}
+
+interface AggregatedResult {
+  article: string;
+  brand: string;
+  price: number;
+  source: string;
+  allPrices: { source: string; price: number; brand: string }[];
+}
+
+export default function App() {
+  // ======================= STATE =======================
+  const [files, setFiles] = useState<FileStatus[]>([]);
+  const [parsedData, setParsedData] = useState<ParsedRow[]>([]);
+  const [simulatedPath, setSimulatedPath] = useState<string>('C:\\Users\\Manager\\Downloads\\Prices_2026');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(15);
+  const [sortField, setSortField] = useState<keyof ParsedRow>('price');
+  const [sortAsc, setSortAsc] = useState<boolean>(true);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+
+  // ======================= COLUMN DETECTOR KEYWORDS =======================
+  const ARTICLE_KEYWORDS = ['артикул', 'арт', 'sku', 'код', 'номер', 'article', 'id', 'товар', 'кодтовара'];
+  const BRAND_KEYWORDS = ['бренд', 'brand', 'производитель', 'произв', 'изготовитель', 'make', 'марка'];
+  const PRICE_KEYWORDS = ['цена', 'price', 'стоимость', 'cost', 'закуп', 'сумма', 'ценазакупа', 'ррц'];
+
+  // Helper helper to clean up price string and return number
+  const cleanPrice = (val: any): number | null => {
+    if (val === undefined || val === null) return null;
+    if (typeof val === 'number') return isNaN(val) ? null : val;
     
-    Возвращает: (result_df, file_statuses)
-    """
-    file_statuses = []
-    all_rows = []
-    # Ищем файлы (рекурсивно до 1 уровня вложенности)
-    patterns = ['*.xlsx', '*.xls', '*.csv']
-    found_files = set()
-    for pat in patterns:
-        found_files.update(glob.glob(os.path.join(folder_path, pat)))
-        found_files.update(glob.glob(os.path.join(folder_path, '**', pat), recursive=True))
-    files = sorted(found_files)
-    if not files:
-        return None, []
-    for fpath in files:
-        fname = os.path.basename(fpath)
-        size = format_size(os.path.getsize(fpath))
-        base_name = os.path.splitext(fname)[0]
-        # Чтение
-        df = read_file(fpath)
-        if df is None or df.empty:
-            file_statuses.append({
-                'name': fname,
-                'size': size,
-                'status': 'error',
-                'msg': 'Файл пуст или повреждён',
-                'art_col': None,
-                'brand_col': None,
-                'price_col': None,
-                'rows': 0
-            })
-            continue
-        # Поиск колонок
-        col_art   = detect_column(df, ['артикул', 'арт', 'sku', 'код', 'item', 'товар', 'code', 'номер', 'id', 'артикултовара', 'штрихкод'])
-        col_brand = detect_column(df, ['бренд', 'brand', 'производитель', 'произв', 'изготовитель', 'make', 'марка', 'производительтовара'])
-        col_price = detect_column(df, ['цена', 'price', 'cost', 'стоимость', 'закуп', 'сумма', 'ценазакупа', 'ррц', 'ценареализации', 'sale'])
-        # Если цена не найдена — автоопределение: находим числовой столбец с наибольшей долей цифр
-        if col_price is None:
-            best_col = None
-            best_ratio = 0
-            for col in df.columns:
-                sample = pd.to_numeric(df[col].head(50), errors='coerce')
-                ratio = sample.notna().sum() / min(len(df), 50)
-                # Пропускаем колонки, похожие на артикул/бренд (нечисловые)
-                if df[col].dtype.kind in 'bifc' or sample.notna().sum() > 5:
-                    if ratio > best_ratio:
-                        best_ratio = ratio
-                        best_col = col
-            col_price = best_col
-        # Проверяем наличие обязательных колонок
-        if col_art is None or col_price is None:
-            missing = []
-            if col_art is None: missing.append('Артикул')
-            if col_price is None: missing.append('Цена')
-            file_statuses.append({
-                'name': fname,
-                'size': size,
-                'status': 'error',
-                'msg': f'Не найдены колонки: {", ".join(missing)}',
-                'art_col': col_art,
-                'brand_col': col_brand,
-                'price_col': col_price,
-                'rows': 0
-            })
-            continue
-        # Извлекаем подмножество
-        sub = df[[col_art, col_price] + ([col_brand] if col_brand else [])].copy()
+    let s = String(val).trim().replace(/\s/g, '').replace(/\u00a0/g, '');
+    if (!s) return null;
+    
+    // Replace comma with dot if it's acting as a decimal separator
+    // If we have both commas and dots: e.g. 1,250.50 -> strip commas, keep dot
+    if (s.includes(',') && s.includes('.')) {
+      s = s.replace(/,/g, '');
+    } else if (s.includes(',')) {
+      // If only comma, check if it's decimal or thousands. E.g. "1250,50" -> "1250.50"
+      const parts = s.split(',');
+      if (parts[parts.length - 1].length <= 2) {
+        s = s.replace(',', '.');
+      } else {
+        s = s.replace(/,/g, '');
+      }
+    }
+    
+    // Strip everything except numbers, dots, and minus
+    s = s.replace(/[^\d.-]/g, '');
+    const num = parseFloat(s);
+    return isNaN(num) ? null : num;
+  };
+
+  // Helper helper to detect matching columns
+  const detectColumn = (headers: string[], keywords: string[]): string | null => {
+    for (const header of headers) {
+      const hLower = header.toString().trim().toLowerCase();
+      for (const kw of keywords) {
+        if (hLower === kw || hLower.includes(kw)) {
+          return header;
+        }
+      }
+    }
+    return null;
+  };
+
+  // Format file size
+  const formatSize = (bytes: number): string => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  // ======================= FILE PROCESSING LOGIC =======================
+  const handleFiles = async (fileList: FileList | File[]) => {
+    setIsProcessing(true);
+    const newFilesStatus: FileStatus[] = [];
+    const newRows: ParsedRow[] = [];
+
+    // Filter valid formats
+    const validFiles = Array.from(fileList).filter(f => 
+      f.name.endsWith('.xlsx') || 
+      f.name.endsWith('.xls') || 
+      f.name.endsWith('.csv')
+    );
+
+    if (validFiles.length === 0) {
+      setIsProcessing(false);
+      alert('Не найдено поддерживаемых файлов (.xlsx, .xls, .csv)');
+      return;
+    }
+
+    for (const file of validFiles) {
+      const reader = new FileReader();
+      const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+
+      try {
+        const data = await new Promise<ArrayBuffer>((resolve, reject) => {
+          reader.onload = (e) => {
+            if (e.target?.result instanceof ArrayBuffer) {
+              resolve(e.target.result);
+            } else {
+              reject(new Error('Не удалось прочитать файл'));
+            }
+          };
+          reader.onerror = () => reject(new Error('Ошибка чтения'));
+          reader.readAsArrayBuffer(file);
+        });
+
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
         
-        # Переименуем для единообразия
-        rename_map = {col_art: 'артикул', col_price: 'цена'}
-        if col_brand:
-            rename_map[col_brand] = 'бренд'
-        sub = sub.rename(columns=rename_map)
-        if 'бренд' not in sub.columns:
-            sub['бренд'] = '—'
-        # Очистка
-        sub['цена'] = sub['цена'].apply(clean_price)
-        sub['артикул'] = sub['артикул'].astype(str).str.strip()
-        sub = sub.dropna(subset=['артикул', 'цена'])
-        sub = sub[sub['артикул'] != '']
-        sub = sub[sub['цена'] > 0]
-        sub['бренд'] = sub['бренд'].astype(str).str.strip()
-        if sub.empty:
-            file_statuses.append({
-                'name': fname,
-                'size': size,
-                'status': 'warning',
-                'msg': 'После очистки не осталось данных',
-                'art_col': col_art,
-                'brand_col': col_brand,
-                'price_col': col_price,
-                'rows': 0
-            })
-            continue
-        sub['источник'] = base_name
-        file_statuses.append({
-            'name': fname,
-            'size': size,
-            'status': 'success',
-            'msg': f'✅ {len(sub)} строк | Цена: {col_price} | Арт: {col_art}',
-            'art_col': col_art,
-            'brand_col': col_brand,
-            'price_col': col_price,
-            'rows': len(sub)
-        })
-        all_rows.append(sub)
-    if not all_rows:
-        return None, file_statuses
-    # Объединяем
-    combined = pd.concat(all_rows, ignore_index=True)
-    # Для каждого артикула берём минимальную цену.
-    # Сортируем по цене — при groupby первое значение будет самым дешёвым.
-    combined = combined.sort_values('цена')
-    result = combined.groupby('артикул', as_index=False).agg({
-        'цена': 'first',
-        'источник': 'first',
-        'бренд': 'first'
-    })
-    # Оформляем итог
-    result = result[['артикул', 'бренд', 'цена', 'источник']]
-    result.columns = ['Артикул', 'Бренд', 'Цена', 'Источник']
-    result['Цена'] = result['Цена'].round(2)
-    result = result.sort_values('Артикул').reset_index(drop=True)
-    return result, file_statuses
-# ============================================================
-# ЭКСПОРТ
-# ============================================================
-def to_excel_bytes(df: pd.DataFrame) -> bytes:
-    buf = BytesIO()
-    with pd.ExcelWriter(buf, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Результат')
-        ws = writer.sheets['Результат']
-        # Шрифт и цвет заголовков
-        from openpyxl.styles import Font, PatternFill
-        header_fill = PatternFill('solid', fgColor='667eea')
-        header_font = Font(color='FFFFFF', bold=True)
-        for cell in ws[1]:
-            cell.fill = header_fill
-            cell.font = header_font
-        # Автоподбор ширины
-        for col_idx, col in enumerate(df.columns, 1):
-            max_len = max(df[col].astype(str).map(len).max(), len(col)) + 2
-            ws.column_dimensions[ws.cell(1, col_idx).column_letter].width = min(max_len, 40)
-    return buf.getvalue()
-def to_csv_string(df: pd.DataFrame) -> str:
-    return df.to_csv(index=False, encoding='utf-8-sig', sep=';')
-# ============================================================
-# ОСНОВНОЙ ИНТЕРФЕЙС
-# ============================================================
-st.markdown('<div class="app-container">', unsafe_allow_html=True)
-# ---------- БАННЕР ----------
-st.markdown('<div class="hero-banner">', unsafe_allow_html=True)
-st.markdown("""
-    <div class="d-flex justify-content-between align-items-center" style="position:relative;z-index:1;">
-      <div>
-        <div style="display:inline-block;background:#667eea22;color:#a5b4fc;
-font-size:0.75rem;font-weight:600;padding:0.2rem 0.8rem;border-radius:20px;margin
--:0 0 0.5rem 0;border:1px solid #667eea44;">
-          <span style="display:inline-block;margin-right:0.3rem;">⚡</span> Работает локально · Без отправки данных в сеть
-        </div>
-        <h1 style="color:#fff;font-size:1.9rem;font-weight:700;margin
-        :0;letter-spacing:-0.02em;">
-          Прайс-<span class="banner-gradient-text">анализатор</span>
-        </h1>
-        <p style="color:#7d808a;margin:0.35rem 0 0 0;font-size:0.95rem;">
-          Автоматическая сборка минимальных цен из прайс-листов поставщиков<br>
-          <span style="font-size:0.85rem;color:#5a5f6e;">Все файлы обрабатываются на вашем компьютере</span>
-        </p>
-      </div>
-      <div style="display:flex;gap:0.4rem;flex-shrink:0;">
-        <span style="font-size:2rem;filter:grayscale(0.2);">📊</span>
-        <span style="font-size:1.6rem;filter:grayscale(0.2);">🔍</span>
-        <span style="font-size:1.6rem;filter:grayscale(0.2);">💰</span>
-      </div>
-    </div>
-""", unsafe_allow_html=True)
-st.markdown('</div>', unsafe_allow_html=True)
-# ========================================================================
-# БОКОВАЯ ПАНЕЛЬ (SIDEBAR)
-# ================================================================
-with st.sidebar:
-    st.markdown('<div style="margin-bottom:0.8rem;">', unsafe_allow_html=True)
-    st.markdown('<h2 style="color:#a5b4fc;font-size:1rem;font-weight:700;margin:0 0 0.5rem 0;display:flex;align-items:center;gap:0.5rem;">'
-                '<span style="font-size:1.2rem;">📁</span> Источник данных</h2>', unsafe_allow_html=True)
-    # Ввод пути к папке
-    folder_path = st.text_input(
-        "Путь к папке с прайсами",
-        value="",
-        placeholder="C:\\Прайсы\\2026\\ или /home/user/prices/...",
-        label_visibility="collapsed",
-        key="folder_input"
-    )
-    folder_valid = False
-    if folder_path.strip():
-        folder_path = folder_path.strip().strip('"').strip("'")
-        if os.path.isdir(folder_path):
-            folder_valid = True
-            st.success(f"✅ Папка найдена  `" + os.path.basename(folder_path) + "`")
-            # Краткая статистика по папке
-            try:
-                items = os.listdir(folder_path)
-                files_in_folder = [f for f in items if os.path.isfile(os.path.join(folder_path, f))]
-                dirs = [d for d in items if os.path.isdir(os.path.join(folder_path, d))]
-                st.caption(f"📊 {len(files_in_folder)} файлов · {len(dirs)} папок")
-            except Exception:
-                pass
-        else:
-            st.error("❌ Папка не найдена. Проверьте путь.")
-    st.markdown('</div>', unsafe_allow_html=True)
-    st.divider()
-    # --- Демо-данные ---
-    st.markdown('<h3 style="color:#a5b4fc;font-size:0.85rem;font-weight:600;margin:0 0 0.5rem 0;">🧪 Демо-данные</h3>', unsafe_allow_html=True)
-    st.caption("Если нет собственной папки — нажмите кнопку для быстрого теста")
-    if st.button("📦 Загрузить демо-папку", use_container_width=True, type="primary"):
-        # Создаём временную папку с тестовыми файлами
-        demo_dir = tempfile.mkdtemp(prefix="price_demo_")
-        demo_files = build_demo_files(demo_dir)
-        st.session_state['_demo_dir'] = demo_dir
-        st.session_state['_folder_path'] = demo_dir
-        st.rerun()
-    st.divider()
-    # --- Краткая справка ---
-    with st.expander("ℹ️  Как это работает", expanded=False):
-        st.markdown("""
-        **Алгоритм работы приложения:**
+        // Convert sheet to json matrix (raw rows)
+        const rawJson: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
         
-        1. Сканирует все `.xlsx` / `.xls` / `.csv` файлы в указанной папке
-        2. Автоматически находит колонки 
-           - **Артикул** (`артикул`, `арт`, `sku`, `код`, `item`...)
-           - **Бренд** (`бренд`, `brand`, `производитель`...)
-           - **Цена** (`цена`, `price`, `cost`...). 
-             Если ценовой столбец не найден по названию — определяется как первая числовая колонка
-        3. Объединяет все файлы, очищает цены (убранные пробелы, валюты, разделители тысяч)
-        4. Для каждого артикула находит **самую низкую цену**
-        5. Добавляет колонку **Источник** (имя файла без расширения)
-        6. Результат можно скачать в **Excel** или **CSV**
+        if (rawJson.length === 0) {
+          newFilesStatus.push({
+            name: file.name,
+            size: formatSize(file.size),
+            status: 'warning',
+            message: 'Файл пуст',
+            detectedColumns: { article: null, brand: null, price: null },
+            rowCount: 0
+          });
+          continue;
+        }
+
+        // Find headers (usually the first row with several columns, or search the first 5 rows)
+        let headerRowIndex = 0;
+        let headers: string[] = [];
+        for (let r = 0; r < Math.min(10, rawJson.length); r++) {
+          const row = rawJson[r];
+          if (row && row.length > 1) {
+            const hasKeywords = row.some(cell => {
+              if (!cell) return false;
+              const cellStr = String(cell).toLowerCase();
+              return ARTICLE_KEYWORDS.some(k => cellStr.includes(k)) || 
+                     PRICE_KEYWORDS.some(k => cellStr.includes(k));
+            });
+            if (hasKeywords) {
+              headerRowIndex = r;
+              headers = row.map(h => String(h || '').trim());
+              break;
+            }
+          }
+        }
+
+        // Fallback to first row if no keywords detected
+        if (headers.length === 0) {
+          headers = (rawJson[0] || []).map(h => String(h || '').trim());
+        }
+
+        const colArt = detectColumn(headers, ARTICLE_KEYWORDS);
+        const colBrand = detectColumn(headers, BRAND_KEYWORDS);
+        const colPrice = detectColumn(headers, PRICE_KEYWORDS);
+
+        if (!colArt || !colPrice) {
+          // Attempt numeric auto-detect for price if not found
+          let fallbackPriceCol = colPrice;
+          if (!colPrice && rawJson.length > headerRowIndex + 1) {
+            // Check headers that have numeric cells down below
+            const nextRow = rawJson[headerRowIndex + 1];
+            for (let c = 0; c < nextRow.length; c++) {
+              const val = cleanPrice(nextRow[c]);
+              if (val !== null && val > 0 && headers[c]) {
+                fallbackPriceCol = headers[c];
+                break;
+              }
+            }
+          }
+
+          if (!colArt || !fallbackPriceCol) {
+            newFilesStatus.push({
+              name: file.name,
+              size: formatSize(file.size),
+              status: 'error',
+              message: `Не найдены обязательные столбцы: ${!colArt ? 'Артикул' : ''} ${!colPrice ? 'Цена' : ''}`,
+              detectedColumns: { article: colArt, brand: colBrand, price: fallbackPriceCol },
+              rowCount: 0
+            });
+            continue;
+          } else {
+            // Used fallback price
+            // Let's bind it
+          }
+        }
+
+        const artIndex = headers.indexOf(colArt);
+        const brandIndex = colBrand ? headers.indexOf(colBrand) : -1;
+        const priceIndex = headers.indexOf(colPrice || '');
+
+        let successRowsCount = 0;
+        // Parse rows starting from headerRowIndex + 1
+        for (let r = headerRowIndex + 1; r < rawJson.length; r++) {
+          const row = rawJson[r];
+          if (!row || row.length === 0) continue;
+
+          const rawArt = row[artIndex];
+          if (rawArt === undefined || rawArt === null || String(rawArt).trim() === '') continue;
+          
+          const art = String(rawArt).trim();
+          const rawPrice = row[priceIndex];
+          const price = cleanPrice(rawPrice);
+
+          if (price === null || price <= 0) continue;
+
+          const brand = brandIndex !== -1 && row[brandIndex] !== undefined && row[brandIndex] !== null 
+            ? String(row[brandIndex]).trim() 
+            : '—';
+
+          newRows.push({
+            article: art,
+            brand: brand,
+            price: price,
+            source: fileNameWithoutExt
+          });
+          successRowsCount++;
+        }
+
+        newFilesStatus.push({
+          name: file.name,
+          size: formatSize(file.size),
+          status: 'success',
+          message: `Обработано строк: ${successRowsCount}`,
+          detectedColumns: { article: colArt, brand: colBrand, price: colPrice || 'Автоопределение' },
+          rowCount: successRowsCount
+        });
+
+      } catch (err: any) {
+        newFilesStatus.push({
+          name: file.name,
+          size: formatSize(file.size),
+          status: 'error',
+          message: `Ошибка чтения: ${err.message || err}`,
+          detectedColumns: { article: null, brand: null, price: null },
+          rowCount: 0
+        });
+      }
+    }
+
+    setFiles(prev => [...prev, ...newFilesStatus]);
+    setParsedData(prev => [...prev, ...newRows]);
+    setIsProcessing(false);
+
+    // Boom! 🎉 trigger confetti for success
+    if (newRows.length > 0) {
+      confetti({
+        particleCount: 120,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#667eea', '#764ba2', '#10b981']
+      });
+    }
+  };
+
+  // ======================= GENERATE DEMO DATA =======================
+  const handleLoadDemo = () => {
+    // Generate simulated supplier databases
+    const supplier1Rows: ParsedRow[] = [
+      { article: 'IP15-128-BLK', brand: 'Apple', price: 78900, source: 'Прайс_Марвел_Дистрибьюция' },
+      { article: 'IP15-256-WHT', brand: 'Apple', price: 89900, source: 'Прайс_Марвел_Дистрибьюция' },
+      { article: 'SAM-S24-256-GRY', brand: 'Samsung', price: 69900, source: 'Прайс_Марвел_Дистрибьюция' },
+      { article: 'XIA-14-512-BLK', brand: 'Xiaomi', price: 54900, source: 'Прайс_Марвел_Дистрибьюция' },
+      { article: 'SONY-WH1000-XM5', brand: 'Sony', price: 34500, source: 'Прайс_Марвел_Дистрибьюция' },
+      { article: 'MAC-AIR-M3-16', brand: 'Apple', price: 142000, source: 'Прайс_Марвел_Дистрибьюция' },
+    ];
+
+    const supplier2Rows: ParsedRow[] = [
+      { article: 'IP15-128-BLK', brand: 'Apple LLC', price: 76500, source: 'ОптТорг_Смартфоны_Юг' }, // Cheaper
+      { article: 'IP15-256-WHT', brand: 'Apple', price: 91200, source: 'ОптТорг_Смартфоны_Юг' }, // Exp
+      { article: 'SAM-S24-256-GRY', brand: 'Samsung Group', price: 67800, source: 'ОптТорг_Смартфоны_Юг' }, // Cheaper
+      { article: 'XIA-14-512-BLK', brand: 'Xiaomi Corp', price: 56900, source: 'ОптТорг_Смартфоны_Юг' },
+      { article: 'SONY-WH1000-XM5', brand: 'Sony', price: 32900, source: 'ОптТорг_Смартфоны_Юг' }, // Cheaper
+      { article: 'DYSON-HS05-VIO', brand: 'Dyson', price: 47900, source: 'ОптТорг_Смартфоны_Юг' }, // Unique
+    ];
+
+    const supplier3Rows: ParsedRow[] = [
+      { article: 'IP15-128-BLK', brand: 'Apple', price: 79000, source: 'Премиум_Импорт_Москва' },
+      { article: 'IP15-256-WHT', brand: 'Apple', price: 88500, source: 'Премиум_Импорт_Москва' }, // Cheaper
+      { article: 'SAM-S24-256-GRY', brand: 'Samsung', price: 71000, source: 'Премиум_Импорт_Москва' },
+      { article: 'XIA-14-512-BLK', brand: 'Xiaomi', price: 52900, source: 'Премиум_Импорт_Москва' }, // Cheaper
+      { article: 'MAC-AIR-M3-16', brand: 'Apple Store', price: 139000, source: 'Премиум_Импорт_Москва' }, // Cheaper
+      { article: 'DYSON-HS05-VIO', brand: 'Dyson Airwrap', price: 49900, source: 'Премиум_Импорт_Москва' },
+      { article: 'PS5-SLIM-1TB', brand: 'Sony Interactive', price: 48900, source: 'Премиум_Импорт_Москва' }, // Unique
+    ];
+
+    setFiles([
+      {
+        name: 'Прайс_Марвел_Дистрибьюция.xlsx',
+        size: '142.5 KB',
+        status: 'success',
+        message: 'Обработано строк: 6',
+        detectedColumns: { article: 'Артикул товара', brand: 'Производитель', price: 'Цена (руб.)' },
+        rowCount: 6
+      },
+      {
+        name: 'ОптТорг_Смартфоны_Юг.csv',
+        size: '88.1 KB',
+        status: 'success',
+        message: 'Обработано строк: 6',
+        detectedColumns: { article: 'Код SKU', brand: 'Бренд', price: 'Цена закупки' },
+        rowCount: 6
+      },
+      {
+        name: 'Премиум_Импорт_Москва.xls',
+        size: '1.2 MB',
+        status: 'success',
+        message: 'Обработано строк: 7',
+        detectedColumns: { article: 'Артикул', brand: 'Бренд', price: 'Цена со скидкой' },
+        rowCount: 7
+      }
+    ]);
+
+    setParsedData([...supplier1Rows, ...supplier2Rows, ...supplier3Rows]);
+    
+    confetti({
+      particleCount: 100,
+      spread: 60,
+      origin: { y: 0.6 }
+    });
+  };
+
+  // ======================= AGGREGATION ALGORITHM =======================
+  const aggregatedResults = useMemo(() => {
+    const articleMap = new Map<string, AggregatedResult>();
+
+    parsedData.forEach(row => {
+      const normArt = row.article.toUpperCase().trim();
+      
+      const existing = articleMap.get(normArt);
+      const rowPrice = row.price;
+      
+      if (!existing) {
+        articleMap.set(normArt, {
+          article: row.article, // preserve original casing
+          brand: row.brand,
+          price: rowPrice,
+          source: row.source,
+          allPrices: [{ source: row.source, price: rowPrice, brand: row.brand }]
+        });
+      } else {
+        existing.allPrices.push({ source: row.source, price: rowPrice, brand: row.brand });
         
-        **Важно:** все данные обрабатываются локально. Никакой отправки в интернет.
-        """)
-    st.divider()
-    # --- Очистка ---
-    if 'result_df' in st.session_state and st.session_state['result_df'] is not None:
-        st.markdown("")
-        if st.button("🗑  Очистить результат", use_container_width=True):
-            st.session_state['result_df'] = None
-            st.session_state['file_statuses'] = []
-            st.rerun()
-# ================================================================
-# ПОЛЕ ЗАГРУЗКИ ФАЙЛОВ (дополнительный способ)
-# ================================================================
-with st.sidebar:
-    st.markdown('<h3 style="color:#a5b4fc;font-size:0.85rem;font-weight:600;margin:0 0 0.5rem 0;">📂 Загрузить файлы вручную</h3>', unsafe_allow_html=True)
-    uploaded_files = st.file_uploader(
-        "Выберите xlsx/xls/csv файлы",
-        type=['xlsx', 'xls', 'csv'],
-        accept_multiple_files=True,
-        label_visibility="collapsed"
-    )
-    if uploaded_files and not folder_valid:
-        # Если файлы загружены вручную и папка не задана — обрабатываем их
-        st.info(f"📎 Загручено файлов: {len(uploaded_files)}")
-    if uploaded_files and folder_valid:
-        st.warning("⚠️ И загрузка файлов, и путь к папке указаны. Будут использованы файлы из папки.")
-# ================================================================
-# ЛОГИКА — определяем, откуда брать файлы
-# ================================================================
-result_df = st.session_state.get('result_df', None)
-file_statuses = st.session_state.get('file_statuses', [])
-# Если папка валидна — проверяем, нужно ли перезапустить анализ
-should_process = False
-process_source = None
-if folder_valid:
-    st.session_state_folder_key = '_folder_hash'
-    import hashlib
-    folder_hash = hashlib.md5(folder_path.encode()).hexdigest()
-    last_hash = st.session_state.get(st.session_state_folder_key, None)
-    if last_hash != folder_hash:
-        should_process = True
-        process_source = 'folder'
-    # Если результат уже на месте и хеш совпадает — используем
-    if result_df is None:
-        should_process = True
-        process_source = 'folder'
-# Загрузка файлов из ручного интерфейса
-if uploaded_files and not folder_valid:
-    # Проверим, не менялся ли состав файлов
-    current_names = sorted([f.name for f in uploaded_files])
-    old_names = st.session_state.get('_uploaded_names', [])
-    if current_names != old_names:
-        should_process = True
-        process_source = 'files'
-    elif result_df is None:
-        should_process = True
-        process_source = 'files'
-st.session_state['_uploaded_names'] = sorted([f.name for f in uploaded_files]) if uploaded_files else []
-# Демо-режим
-if '_demo_dir' in st.session_state:
-    demo_dir = st.session_state['_demo_dir']
-    if os.path.isdir(demo_dir):
-        should_process = True
-        process_source = 'folder'
-        folder_path = demo_dir
-        st.session_state['_folder_path'] = demo_dir
-# ================================================================
-# ВЫПОЛНЕНИЕ АНАЛИЗА
-# ================================================================
-if should_process:
-    with st.spinner("🔍 Сканирование и анализ прайсов..."):
-        if process_source == 'folder' and folder_valid:
-            out_df, statuses = process_folder(folder_path)
-        elif process_source == 'files' and uploaded_files:
-            # Временный каталог для загруженных файлов
-            tmp_dir = tempfile.mkdtemp(prefix="streamlit_prices_")
-            saved_paths = []
-            for uf in uploaded_files:
-                save_path = os.path.join(tmp_dir, uf.name)
-                with open(save_path, 'wb') as f:
-                    f.write(uf.getbuffer())
-                saved_paths.append(save_path)
-            out_df, statuses = process_folder(tmp_dir)
-            # Сохраняем временную папку для повторного использования
-            st.session_state['_tmp_files_dir'] = tmp_dir
-        else:
-            out_df, statuses = None, []
-    st.session_state['result_df'] = out_df
-    st.session_state['file_statuses'] = statuses
-    st.session_state['_process_time'] = datetime.now().strftime("%H:%M:%S")
+        // If we found a cheaper price, update top level
+        if (rowPrice < existing.price) {
+          existing.price = rowPrice;
+          existing.source = row.source;
+          // Only update brand if it was empty/default and the new one is better
+          if (row.brand && row.brand !== '—') {
+            existing.brand = row.brand;
+          }
+        } else if (existing.brand === '—' && row.brand && row.brand !== '—') {
+          // If existing brand is empty but the more expensive offer has a brand, update it
+          existing.brand = row.brand;
+        }
+      }
+    });
+
+    return Array.from(articleMap.values());
+  }, [parsedData]);
+
+  // ======================= FILTER & SORT & PAGINATION =======================
+  const filteredAndSortedResults = useMemo(() => {
+    let result = [...aggregatedResults];
+
+    // Filter by query
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().trim();
+      result = result.filter(item => 
+        item.article.toLowerCase().includes(q) || 
+        item.brand.toLowerCase().includes(q) || 
+        item.source.toLowerCase().includes(q)
+      );
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      let valA = a[sortField];
+      let valB = b[sortField];
+
+      if (typeof valA === 'string') {
+        return sortAsc 
+          ? (valA as string).localeCompare(valB as string) 
+          : (valB as string).localeCompare(valA as string);
+      } else if (typeof valA === 'number') {
+        return sortAsc 
+          ? (valA as number) - (valB as number) 
+          : (valB as number) - (valA as number);
+      }
+      return 0;
+    });
+
+    return result;
+  }, [aggregatedResults, searchQuery, sortField, sortAsc]);
+
+  // Paginated chunk
+  const paginatedResults = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedResults.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAndSortedResults, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredAndSortedResults.length / itemsPerPage) || 1;
+
+  // Watch query changes to reset page
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, itemsPerPage]);
+
+  const handleSort = (field: keyof ParsedRow) => {
+    if (sortField === field) {
+      setSortAsc(!sortAsc);
+    } else {
+      setSortField(field);
+      setSortAsc(true);
+    }
+  };
+
+  // ======================= DOWNLOAD EXPORTERS =======================
+  const downloadExcel = () => {
+    if (aggregatedResults.length === 0) return;
+
+    // Prepare custom formatted data
+    const exportData = aggregatedResults.map(item => ({
+      'Артикул': item.article,
+      'Бренд': item.brand,
+      'Цена (Самая низкая)': item.price,
+      'Источник (Поставщик)': item.source,
+      'Всего предложений': item.allPrices.length
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
     
-    if process_source == 'folder':
-        st.session_state['_folder_hash'] = hashlib.md5(folder_path.encode()).hexdigest()
-    st.rerun()
-# ================================================================
-# ВЫВОД РЕЗУЛЬТАТОВ
-# ================================================================
-if result_df is not None and not result_df.empty:
-    statuses = file_statuses
-    # ---------- СТАТУСЫ ФАЙЛОВ ----------
-    st.markdown("""
-        <div style="margin-bottom:1.25rem;">
-            <h3 style="color:#a5b4fc;font-size:1rem;font-weight:600;margin:0 0 0.75rem 0;display:flex;align-items:center;gap:0.5rem;">
-                <span>📋</span> Статус обработки файлов
-            </h3>
+    // Auto fit column widths
+    const maxLens = Object.keys(exportData[0]).map(key => {
+      const colKey = key as keyof typeof exportData[0];
+      const lengths = exportData.map(row => String(row[colKey]).length);
+      lengths.push(key.length);
+      return { wch: Math.max(...lengths) + 3 };
+    });
+    worksheet['!cols'] = maxLens;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Минимальные Цены");
+    
+    XLSX.writeFile(workbook, "Самые_дешевые_предложения.xlsx");
+    
+    confetti({
+      particleCount: 80,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 }
+    });
+    confetti({
+      particleCount: 80,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 }
+    });
+  };
+
+  const downloadCSV = () => {
+    if (aggregatedResults.length === 0) return;
+
+    const headers = ['Артикул', 'Бренд', 'Цена', 'Источник'];
+    const rows = aggregatedResults.map(item => [
+      `"${item.article.replace(/"/g, '""')}"`,
+      `"${item.brand.replace(/"/g, '""')}"`,
+      item.price,
+      `"${item.source.replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Самые_дешевые_предложения.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const copyToClipboard = () => {
+    if (aggregatedResults.length === 0) return;
+
+    const headers = ['Артикул', 'Бренд', 'Цена', 'Источник'].join('\t');
+    const rows = aggregatedResults.map(item => [
+      item.article,
+      item.brand,
+      item.price,
+      item.source
+    ].join('\t')).join('\n');
+
+    navigator.clipboard.writeText(headers + '\n' + rows);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const clearData = () => {
+    setFiles([]);
+    setParsedData([]);
+    setCurrentPage(1);
+  };
+
+  // Calculate global savings metrics
+  const globalMetrics = useMemo(() => {
+    let savedTotal = 0;
+    let competingItemsCount = 0;
+
+    aggregatedResults.forEach(item => {
+      if (item.allPrices.length > 1) {
+        const prices = item.allPrices.map(p => p.price);
+        const maxPrice = Math.max(...prices);
+        const minPrice = item.price;
+        savedTotal += (maxPrice - minPrice);
+        competingItemsCount++;
+      }
+    });
+
+    const totalArticles = aggregatedResults.length;
+    const avgPrice = totalArticles > 0 ? aggregatedResults.reduce((acc, curr) => acc + curr.price, 0) / totalArticles : 0;
+
+    return {
+      savedTotal,
+      competingItemsCount,
+      avgPrice
+    };
+  }, [aggregatedResults]);
+
+  return (
+    <div className="min-h-screen bg-[#0e1117] text-[#e4e4e7] font-sans selection:bg-[#667eea]/30 selection:text-white flex flex-col md:flex-row">
+      
+      {/* ======================= SIDEBAR (STREAMLIT STYLE) ======================= */}
+      <aside className="w-full md:w-[340px] bg-[#1a1d24] border-b md:border-b-0 md:border-r border-[#2a2d35] p-6 flex flex-col gap-6 shrink-0">
+        
+        {/* Sidebar Brand Logo */}
+        <div className="flex items-center gap-3 pb-4 border-b border-[#2a2d35]">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#667eea] to-[#764ba2] flex items-center justify-center shadow-lg shadow-[#667eea]/20">
+            <Activity className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg text-white tracking-wide leading-tight">Прайс Анализатор</h1>
+            <p className="text-[11px] text-[#8b8fa3] font-mono">Streamlit Premium v1.4.2</p>
+          </div>
         </div>
-    """, unsafe_allow_html=True)
-    success_files = [s for s in statuses if s['status'] == 'success']
-    error_files   = [s for s in statuses if s['status'] == 'error']
-    warning_files = [s for s in statuses if s['status'] == 'warning']
-    col_success, col_error = st.columns(2)
-    
-    with col_success:
-        if success_files:
-            for fs in success_files:
-                st.markdown(f"""
-                    <div class="file-card success">
-                        <div style="display:flex;flex-direction:column;flex:1;">
-                            <span style="font-weight:600;color:#e4e4e7;font-size:0.9rem;">{fs['name']}</span>
-                            <span style="color:#7d808a;font-size:0.75rem;margin-top:0.1rem;">{fs['size']}</span>
-                        </div>
-                        <span style="color:#10b981;font-size:0.8rem;font-weight:500;white-space:nowrap;">{fs['msg']}</span>
-                    </div>
-                """, unsafe_allow_html=True)
-    with col_error:
-        if error_files or warning_files:
-            for fs in error_files + warning_files:
-                color = '#ef4444' if fs['status'] == 'error' else '#f59e0b'
-                icon  = '⚠️' if fs['status'] == 'warning' else '❌'
-                st.markdown(f"""
-                    <div class="file-card {'warning' if fs['status']=='warning' else 'error'}">
-                        <div style="display:flex;flex-direction:column;flex:1;">
-                            <span style="font-weight:600;color:#e4e4e7;font-size:0.9rem;">{fs['name']}</span>
-                            <span style="color:#7d808a;font-size:0.75rem;margin-top:0.1rem;">{fs['size']}</span>
-                        </div>
-                        <span style="color:{color};font-size:0.8rem;font-weight:500;white-space:nowrap;">{icon} {fs['msg']}</span>
-                    </div>
-                """, unsafe_allow_html=True)
-    if not statuses:
-        st.caption("Файлы не найдены в указанной папке.")
-    st.divider()
-    # ---------- СТАТИСТИКА ----------
-    total_art = len(result_df)
-    min_price = result_df['Цена'].min()
-    max_price = result_df['Цена'].max()
-    avg_price = result_df['Цена'].mean()
-    unique_sources = result_df['Источник'].nunique()
-    
-    # Подсчёт экономии (разница между средней и минимальной для нескольких источников на один артикул)
-    art_source_counts = result_df.groupby('Артикул')['Источник'].nunique()
-    competing_arts = (art_source_counts > 1).sum()
-    st.markdown("""
-        <div style="margin-bottom:1.25rem;">
-            <h3 style="color:#a5b4fc;font-size:1rem;font-weight:600;margin:0 0 0.75rem 0;display:flex;align-items:center;gap:0.5rem;">
-                <span>🏆</span> Аналитика
-            </h3>
-        </div>
-    """, unsafe_allow_html=True)
-    s1, s2, s3, s4, s5 = st.columns(5)
-    stat_cards = [
-        (f"{total_art:,}", "Уникальных артикулов\nс найденной ценой", "#667eea"),
-        (f"{min_price:,.2f} ₽", "Самая низкая цена\nсреди всех прайсов", "#10b981"),
-        (f"{max_price:,.2f} ₽", "Самая высокая цена\n(для анализа разброса)", "#f87171"),
-        (f"{avg_price:,.2f} ₽", "Средняя цена\nпо найденным предложениям", "#8b5cf6"),
-        (f"{unique_sources}", "Уникальных источников\n(файлов-поставщиков)", "#f59e0b"),
-    ]
-    for col, (val, label, accent) in zip([s1, s2, s3, s4, s5], stat_cards):
-        col.markdown(f"""
-            <div class="stat-card">
-                <div class="stat-value" style="color:{accent};">{val}</div>
-                <div class="stat-label" style="color:#7d808a;margin-top:0.35rem;">{label}</div>
+
+        {/* Directory Scanner Simulator input */}
+        <div>
+          <label className="block text-xs font-semibold text-[#8b8fa3] uppercase tracking-wider mb-2">
+            Выбранная папка (Путь)
+          </label>
+          <div className="relative">
+            <input 
+              type="text" 
+              value={simulatedPath}
+              onChange={(e) => setSimulatedPath(e.target.value)}
+              placeholder="C:\Users\Documents\Prices"
+              className="w-full bg-[#0e1117] border border-[#2a2d35] rounded-lg px-3 py-2 text-sm text-[#e4e4e7] focus:outline-none focus:border-[#667eea] transition"
+            />
+            <div className="absolute right-2 top-2.5">
+              <span className="w-2 h-2 rounded-full bg-[#10b981] inline-block animate-pulse" title="Система подключена"></span>
             </div>
-        """, unsafe_allow_html=True)
-    if competing_arts > 0:
-        st.caption(f"💡 {competing_arts} артикулов найдены в нескольких прайс-листах — выбраны самые дешёвые предложения.")
-    st.divider()
-    # ---------- ТАБЛИЦА РЕЗУЛЬТАТОВ ----------
-    st.markdown("""
-        <div style="margin-bottom:0.75rem;">
-            <h3 style="color:#a5b4fc;font-size:1rem;font-weight:600;margin:0 0 0.5rem 0;display:flex;align-items:center;gap:0.5rem;">
-                <span>📊</span> Таблица результатов
-                <span style="font-weight:400;font-size:0.8rem;color:#5a5f6e;margin-left:auto;">{0} из {1} записей</span>
-            </h3>
+          </div>
+          <p className="text-[11px] text-[#6b7280] mt-1.5 leading-relaxed">
+            Виртуальный путь к локальной папке с прайс-листами поставщиков.
+          </p>
         </div>
-    """.format(0, len(result_df)), unsafe_allow_html=True)
-    # Стилизованная таблица
-    table_html = """
-    <div class="dataframe-wrapper">
-        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
-            <thead>
-                <tr style="background:#1e2230;border-bottom:2px solid #2d3139;">
-                    <th style="padding:0.85rem 1rem;text-align:left;color:#a5b4fc;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">#</th>
-                    <th style="padding:0.85rem 1rem;text-align:left;color:#a5b4fc;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Артикул</th>
-                    <th style="padding:0.85rem 1rem;text-align:left;color:#a5b4fc;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Бренд</th>
-                    <th style="padding:0.85rem 1rem;text-align:right;color:#10b981;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Цена (₽)</th>
-                    <th style="padding:0.85rem 1rem;text-align:left;color:#a5b4fc;font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;">Источник (поставщик)</th>
-                </tr>
-    """
-    rows_to_show = min(len(result_df), 50)
-    for idx, row in result_df.head(rows_to_show).iterrows():
-        table_html += f"""
-            <tr style="border-bottom:1px solid #1e2230;transition:background 0.15s ease;" onmouseover="this.style.background='#1a1d28'" onmouseout="this.style.background='transparent'">
-                <td style="padding:0.65rem 1rem;color:#5a5f6e;font-size:0.75rem;">{idx+1}</td>
-                <td style="padding:0.65rem 1rem;color:#e4e4e7;font-weight:500;font-family:monospace;font-size:0.85rem;">{row['Артикул']}</td>
-                <td style="padding:0.65rem 1rem;color:#d4d4d8;">{row['Бренд']}</td>
-                <td style="padding:0.65rem 1rem;text-align:right;font-weight:700;color:#10b981;font-size:0.95rem;">{row['Цена']:,.2f}</td>
-                <td style="padding:0.65rem 1rem;color:#a5b4fc;font-size:0.82rem;display:flex;align-items:center;gap:0.5rem;">
-                    <span style="width:8px;height:8px;border-radius:50%;background:#667eea;display:inline-block;"></span>
-                    <span style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="{row['Источник']}">{row['Источник']}</span>
-                </td>
-            </tr>
-        """
-    table_html += "</tbody></table></div>"
-    if len(result_df) > 50:
-        table_html += f"""
-            <div style="text-align:center;padding:0.75rem;color:#7d808a;font-size:0.8rem;background:#13161e;border-top:1px solid #1e2230;border-radius:0 0 12px 12px;">
-                📦 Показано первых 50 записей из {len(result_df)}. Для полного результата скачайте Excel-файл.
-            </div>
-        """
-    st.markdown(table_html, unsafe_allow_html=True)
-    st.divider()
-    # ---------- ЭКСПОРТ ----------
-    st.markdown("""
-        <div style="margin-bottom:0.75rem;">
-            <h3 style="color:#a5b4fc;font-size:1rem;font-weight:600;margin:0 0 0.75rem 0;display:flex;align-items:center;gap:0.5rem;">
-                <span>⬇️</span> Скачать результат
-            </h3>
+
+        {/* Directory Scan Controls */}
+        <div className="bg-[#0e1117]/50 rounded-xl p-4 border border-[#2a2d35] flex flex-col gap-3">
+          <span className="text-xs font-semibold text-white/90 flex items-center gap-1.5">
+            <FolderOpen className="w-3.5 h-3.5 text-[#667eea]" /> Выбрать источник
+          </span>
+          
+          <button 
+            onClick={() => folderInputRef.current?.click()}
+            className="w-full py-2 px-3 bg-[#2a2d35]/60 hover:bg-[#2a2d35] text-xs font-medium text-white rounded-lg border border-[#3a3d45] transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>📁 Выбрать всю папку</span>
+          </button>
+
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full py-2 px-3 bg-[#2a2d35]/60 hover:bg-[#2a2d35] text-xs font-medium text-white rounded-lg border border-[#3a3d45] transition flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>📄 Выбрать файлы</span>
+          </button>
+
+          {/* Hidden inputs */}
+          <input 
+            type="file" 
+            ref={folderInputRef}
+            onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            className="hidden"
+            // @ts-ignore
+            webkitdirectory="" 
+            directory="" 
+            multiple
+          />
+          <input 
+            type="file" 
+            ref={fileInputRef}
+            onChange={(e) => e.target.files && handleFiles(e.target.files)}
+            className="hidden"
+            accept=".xlsx, .xls, .csv"
+            multiple
+          />
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-[#2a2d35]"></div>
+            <span className="flex-shrink mx-2 text-[10px] text-[#6b7280] uppercase tracking-widest">ИЛИ</span>
+            <div className="flex-grow border-t border-[#2a2d35]"></div>
+          </div>
+
+          <button
+            onClick={handleLoadDemo}
+            className="w-full py-2.5 px-3 bg-gradient-to-r from-[#667eea]/20 to-[#764ba2]/20 hover:from-[#667eea]/30 hover:to-[#764ba2]/30 text-xs font-semibold text-[#a5b4fc] rounded-lg border border-[#667eea]/40 transition flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#a5b4fc] animate-pulse" />
+            <span>Загрузить демо-данные</span>
+          </button>
         </div>
-    """, unsafe_allow_html=True)
-    e1, e2, e3 = st.columns(3)
-    # Excel
-    with e1:
-        excel_bytes = to_excel_bytes(result_df)
-        st.download_button(
-            label="📗  Скачать Excel (.xlsx)",
-            data=excel_bytes,
-            file_name=f"price_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True,
-            type="primary"
-        )
-    # CSV
-    with e2:
-        csv_str = to_csv_string(result_df)
-        st.download_button(
-            label="📄  Скачать CSV (.csv)",
-            data=csv_str.encode('utf-8-sig'),
-            file_name=f"price_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
-            mime="text/csv;charset=utf-8-sig",
-            use_container_width=True,
-            type="primary"
-        )
-    # TSV (для быстрой вставки в Excel)
-    with e3:
-        tsv_str = result_df.to_csv(index=False, sep='\t', encoding='utf-8')
-        st.download_button(
-            label="📋  TSV для вставки",
-            data=tsv_str.encode('utf-8'),
-            file_name=f"price_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tsv",
-            mime="text/tab-separated-values",
-            use_container_width=True,
-            type="secondary"
-        )
-    st.divider()
-    # ---------- ПОДСКАЗКИ ----------
-    with st.expander("💡  Советы и вопросы"):
-        st.markdown("""
-        **Формат файлов:**
-        - Поддерживаются `.xlsx`, `.xls`, `.csv`
-        - CSV-файлы автоматически определяют кодировку (UTF-8, Windows-1251, KOI8-R)
-        - Цена очищается от валютных символов, пробелов, тысячных разделителей
-        
-        **Названия столбцов:**
-        - **Артикул** определяется по ключевым словам: *артикул, арт, sku, код, item, товар, number, id*
-        - **Бренд** определяется по: *бренд, brand, производитель, производитель, материал*
-        - **Цена** определяется по: *цена, price, cost, стоимость, закуп, сумма, ррц, price*. 
-          Если нет явной цены — выбирается первая числовая колонка
-        
-        **Примеры названий столбцов, которые сработают:**
-        - `Артикул товара`, `ART`, `SKU`, `Код товара`
-        - `Бренд`, `Производитель`, `Brand`, `Производитель товара`
-        - `Цена`, `Price`, `Цена закупа`, `Стоимость`, `Цена (руб.)`, `Cost`
-        """)
-else:
-    # ---------- СТРАНИЦА ОЖИДАНИЯ / ПУСТАЯ ----------
-    st.markdown("""
-        <div style="text-align:center;padding:4rem 1rem;">
-            <div style="font-size:4rem;margin-bottom:1rem;opacity:0.6;">📂</div>
-            <h2 style="color:#e4e4e7;font-weight:600;font-size:1.4rem;margin:0 0 0.5rem 0;">
-                Загрузите прайс-листы для анализа
-            </h2>
-            <p style="color:#5a5f6e;max-width:500px;margin:0 auto;font-size:0.9rem;line-height:1.6;">
-                Введите путь к папке с файлами прайсов в боковой панели,<br>
-                нажмите <strong style="color:#a5b4fc;">«Загрузить демо-папку»</strong> для быстрого теста,<br>
-                или загрузите файлы вручную через меню в сайдбаре.
+
+        {/* Auto Detect Rules */}
+        <div className="mt-auto pt-4 border-t border-[#2a2d35]">
+          <span className="text-[11px] font-semibold text-[#8b8fa3] uppercase tracking-wider block mb-2">
+            🎯 Алгоритм автоопределения колонок
+          </span>
+          <div className="space-y-2 text-[11px] text-[#8b8fa3] leading-relaxed">
+            <p>
+              <strong className="text-[#a5b4fc]">Артикул:</strong> поиск совпадений по <em>"артикул", "арт", "sku", "код", "кодтовара", "id"</em>.
             </p>
+            <p>
+              <strong className="text-[#a5b4fc]">Бренд:</strong> поиск по <em>"бренд", "brand", "производитель", "марка"</em>.
+            </p>
+            <p>
+              <strong className="text-[#a5b4fc]">Цена:</strong> поиск по <em>"цена", "price", "стоимость", "cost", "закуп"</em>. При отсутствии выбирает первый численный столбец.
+            </p>
+          </div>
         </div>
-    """, unsafe_allow_html=True)
-    # Информационная карточка
-    st.info("""
-    **Что делает приложение:**
-    
-    - Сканирует все Excel (`.xlsx`/`.xls`) и CSV файлы в папке
-    - Автоматически находит колонки **Артикул**, **Бренд**, **Цена**
-    - Для каждого артикула ищет **минимальную цену** по всем прайсам
-    - Добавляет колонку **Источник** — имя файла-поставщика
-    - Позволяет скачать итоговый отчёт в **Excel** или **CSV**
-    
-    ⚡  Все обработки происходят на вашем компьютере. Данные не покидают его.
-    """)
-st.markdown('</div>', unsafe_allow_html=True)
-# ================================================================
-# СТРОИТЕЛЬ ДЕМО-ФАЙЛОВ
-# ================================================================
-def build_demo_files(tmp_dir: str) -> list:
-    """Создаёт несколько тестовых прайс-листов в папке tmp_dir."""
-    # Прайс 1: «ОптТорг-Запад»
-    df1 = pd.DataFrame({
-        'Артикул': [
-            'IP15-128-GLA', 'IP15-256-BLK', 'SAM-A54-128-GRY',
-            'XIA-14-256-BLK', 'SONY-WH1000XM5', 'MAC-M2-8-256'
-        ],
-        'Бренд': [
-            'Apple', 'Apple', 'Samsung',
-            'Xiaomi', 'Sony', 'Apple'
-        ],
-        'Цена (руб.)': [
-            78900, 91200, 59900,
-            48900, 34500, 118000
-        ]
-    })
-    df1.to_excel(os.path.join(tmp_dir, 'ОптТорг_Запад.xlsx'), index=False)
-    # Прайс 2: «Маркет-Дистрибьютор» — у Андрея цены лучше на некоторых
-    df2 = pd.DataFrame({
-        'Артикул': [
-            'IP15-128-GLA', 'IP15-256-BLK', 'SAM-A54-128-GRY',
-            'XIA-14-256-BLK', 'SONY-WH1000XM5', 'DYSON-V15-DET',
-            'ASUS-ROG-ZEPRO'
-        ],
-        'Бренд': [
-            'Apple Inc.', 'Apple Corporation', 'Samsung Electronics',
-            'Xiaomi Group', 'Sony Corp', 'Dyson Ltd',
-            'ASUS ROG'
-        ],
-        'Цена_закупки': [
-            76500,  88500, 57800,   # дешевле
-            46900,  32900, 89900,   # дешевле
-            109900                          # уникальный
-        ]
-    })
-    df2.to_excel(os.path.join(tmp_dir, 'Маркет-Дистрибьютор.xlsx'), index=False)
-    # Прайс 3: «Премиум-Импорт» (CSV)
-    df3 = pd.DataFrame({
-        'Код товара': [
-            'IP15-128-GLA', 'IP15-256-BLK', 'SAM-A54-128-GRY',
-            'XIA-14-256-BLK', 'SONY-WH1000XM5', 'MAC-M2-8-256',
-            'GOOGLE-PIXEL8-256'
-        ],
-        'Производитель': [
-            'Apple Store', 'Apple US', 'Samsung RU',
-            'Xiaomi CN', 'Sony Japan', 'Apple Store EU',
-            'Google LLC'
-        ],
-        'Стоимость_руб': [
-            79000,  92000, 60500,
-            49200,  34000, 122000,
-            67900
-        ]
-    })
-    df3.to_csv(os.path.join(tmp_dir, 'Премиум-Импорт.csv'), index=False, encoding='utf-8-sig')
-    # Прайс 4: «СмартФэн» (xls старый формат, через xlsx сохраняем)
-    df4 = pd.DataFrame({
-        'Арт.': [
-            'IP15-128-GLA', 'IP15-256-BLK', 'SAM-A54-128-GRY',
-            'DYSON-V15-DET', 'ASUS-ROG-ZEPRO'
-        ],
-        'Бренд': [
-            'Apple', 'Apple', 'Samsung',
-            'Dyson', 'ASUS'
-        ],
-        'Цена': [
-            81000, 90500, 61000,
-            87900, 112000
-        ]
-    })
-    df4.to_excel(os.path.join(tmp_dir, 'СмартФэн_Опт.xlsm' if False else 'СмартФэн_Опт.xlsx'), index=False)
-    return [f for f in os.listdir(tmp_dir) if os.path.isfile(os.path.join(tmp_dir, f))]
+
+        {/* Clear Data button */}
+        {files.length > 0 && (
+          <button
+            onClick={clearData}
+            className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-xs font-medium text-red-400 rounded-lg border border-red-500/20 transition flex items-center justify-center gap-2"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Очистить все данные</span>
+          </button>
+        )}
+
+      </aside>
+
+      {/* ======================= MAIN APP AREA ======================= */}
+      <main className="flex-grow p-6 md:p-8 flex flex-col gap-6 max-w-7xl mx-auto w-full overflow-x-hidden relative">
+        
+        {/* Processing Spinner Overlay */}
+        {isProcessing && (
+          <div className="absolute inset-0 bg-[#0e1117]/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center gap-4">
+            <div className="w-12 h-12 rounded-full border-4 border-t-[#667eea] border-r-transparent border-[#2a2d35] animate-spin"></div>
+            <p className="text-sm font-semibold text-white">Интеллектуальный парсинг и сопоставление прайсов...</p>
+            <p className="text-xs text-[#8b8fa3]">Поиск цен, определение брендов и удаление дубликатов</p>
+          </div>
+        )}
+
+        {/* Premium Header Banner */}
+        <header className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1e1b4b] via-[#1a1c2e] to-[#0f172a] border border-[#2a2d35] p-6 md:p-8 shadow-xl shadow-[#000000]/30">
+          <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#667eea] opacity-[0.04] blur-[80px] rounded-full -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-[200px] h-[200px] bg-[#764ba2] opacity-[0.04] blur-[60px] rounded-full -ml-20 -mb-20"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#667eea]/10 border border-[#667eea]/30 text-xs font-medium text-[#a5b4fc] mb-3">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Мгновенное сопоставление прайс-листов</span>
+              </div>
+              <h1 className="text-2xl md:text-3.5xl font-extrabold text-white tracking-tight leading-none mb-2">
+                Анализ цен по Артикулу и Бренду
+              </h1>
+              <p className="text-sm md:text-base text-[#8b8fa3] max-w-2xl leading-relaxed">
+                Загрузите папку с прайс-листами поставщиков. Наш интеллектуальный парсер автоматически сопоставит артикулы, очистит числовые форматы валют, найдет самое выгодное (дешевое) предложение и зафиксирует его источник.
+              </p>
+            </div>
+          </div>
+        </header>
+
+        {/* Step-by-Step user visual helper when empty */}
+        {files.length === 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-4">
+            <div className="bg-[#1a1d24] border border-[#2a2d35] rounded-xl p-5 hover:border-[#667eea]/40 transition duration-300">
+              <div className="w-10 h-10 rounded-lg bg-[#667eea]/10 border border-[#667eea]/30 flex items-center justify-center text-lg font-bold text-[#a5b4fc] mb-4">1</div>
+              <h3 className="text-base font-semibold text-white mb-2">Подготовьте прайс-листы</h3>
+              <p className="text-xs text-[#8b8fa3] leading-relaxed">
+                Сложите Excel-файлы или CSV в одну папку. Документы могут иметь разные структуры колонок и отличающиеся наименования столбцов.
+              </p>
+            </div>
+            <div className="bg-[#1a1d24] border border-[#2a2d35] rounded-xl p-5 hover:border-[#667eea]/40 transition duration-300">
+              <div className="w-10 h-10 rounded-lg bg-[#764ba2]/10 border border-[#764ba2]/30 flex items-center justify-center text-lg font-bold text-[#c7d2fe] mb-4">2</div>
+              <h3 className="text-base font-semibold text-white mb-2">Загрузите в систему</h3>
+              <p className="text-xs text-[#8b8fa3] leading-relaxed">
+                Укажите путь к папке в сайдбаре или нажмите <span className="text-[#a5b4fc] font-semibold">"Загрузить демо-данные"</span>, чтобы мгновенно увидеть результат на подготовленном кейсе поставщиков электроники.
+              </p>
+            </div>
+            <div className="bg-[#1a1d24] border border-[#2a2d35] rounded-xl p-5 hover:border-[#667eea]/40 transition duration-300">
+              <div className="w-10 h-10 rounded-lg bg-[#10b981]/10 border border-[#10b981]/30 flex items-center justify-center text-lg font-bold text-emerald-300 mb-4">3</div>
+              <h3 className="text-base font-semibold text-white mb-2">Скачайте отчет</h3>
+              <p className="text-xs text-[#8b8fa3] leading-relaxed">
+                Экспортируйте консолидированную таблицу с найденной минимальной ценой и источником-поставщиком в один клик в формате .xlsx (Excel) или .csv!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Dropzone Area / Drag and Drop (Alternative) */}
+        {files.length === 0 && (
+          <div 
+            onClick={() => fileInputRef.current?.click()}
+            className="border-2 border-dashed border-[#2a2d35] hover:border-[#667eea] bg-[#1a1d24]/40 hover:bg-[#1a1d24]/80 rounded-2xl p-12 text-center cursor-pointer transition duration-300 group"
+          >
+            <div className="w-16 h-16 rounded-full bg-[#2a2d35] group-hover:bg-[#667eea]/10 group-hover:scale-110 transition duration-300 flex items-center justify-center mx-auto mb-4">
+              <FolderOpen className="w-8 h-8 text-[#8b8fa3] group-hover:text-[#a5b4fc]" />
+            </div>
+            <h3 className="text-lg font-semibold text-white group-hover:text-[#a5b4fc] transition mb-1">
+              Нажмите для выбора папки или нескольких прайс-листов
+            </h3>
+            <p className="text-xs text-[#8b8fa3] max-w-md mx-auto leading-relaxed">
+              Поддерживаются файлы Excel (.xlsx, .xls) и таблицы CSV. Система автоматически найдет нужные колонки во всех файлах.
+            </p>
+          </div>
+        )}
+
+        {/* File Parser Status Section */}
+        {files.length > 0 && (
+          <section className="bg-[#1a1d24] border border-[#2a2d35] rounded-xl p-5">
+            <h2 className="text-xs font-semibold text-[#8b8fa3] uppercase tracking-wider mb-4 flex items-center gap-2">
+              <Database className="w-4 h-4 text-[#667eea]" /> Статус обработки источников в папке:
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {files.map((file, idx) => (
+                <div 
+                  key={idx} 
+                  className={`p-3.5 rounded-xl border flex flex-col gap-2 transition ${
+                    file.status === 'success' ? 'bg-emerald-500/5 border-emerald-500/20' :
+                    file.status === 'warning' ? 'bg-amber-500/5 border-amber-500/20' :
+                    'bg-rose-500/5 border-rose-500/20'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-xs text-white truncate" title={file.name}>
+                        {file.name}
+                      </p>
+                      <p className="text-[10px] text-[#6b7280]">{file.size}</p>
+                    </div>
+                    {file.status === 'success' ? (
+                      <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0" />
+                    ) : (
+                      <AlertTriangle className={`w-4.5 h-4.5 shrink-0 ${file.status === 'warning' ? 'text-amber-500' : 'text-rose-500'}`} />
+                    )}
+                  </div>
+
+                  <div className="bg-[#0e1117]/60 rounded px-2 py-1.5 text-[10px] flex flex-wrap gap-x-3 gap-y-1">
+                    <span className="text-[#8b8fa3]">
+                      Арт: <b className={file.detectedColumns.article ? "text-[#a5b4fc]" : "text-rose-400"}>{file.detectedColumns.article ? '✅' : '❌'}</b>
+                    </span>
+                    <span className="text-[#8b8fa3]">
+                      Бренд: <b className="text-amber-300">{file.detectedColumns.brand ? '✅' : '—'}</b>
+                    </span>
+                    <span className="text-[#8b8fa3]">
+                      Цена: <b className={file.detectedColumns.price ? "text-emerald-400" : "text-rose-400"}>{file.detectedColumns.price ? '✅' : '❌'}</b>
+                    </span>
+                  </div>
+
+                  <p className={`text-[11px] font-medium ${
+                    file.status === 'success' ? 'text-emerald-400' :
+                    file.status === 'warning' ? 'text-amber-400' :
+                    'text-rose-400'
+                  }`}>
+                    {file.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Global Key Metrics Row */}
+        {aggregatedResults.length > 0 && (
+          <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div className="bg-gradient-to-tr from-[#1a1d24] to-[#16191f] border border-[#2a2d35] rounded-xl p-4 flex flex-col gap-1.5 relative overflow-hidden group">
+              <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition duration-300">
+                <Layers className="w-10 h-10 text-[#667eea]" />
+              </div>
+              <span className="text-xs text-[#8b8fa3] font-medium">Уникальных артикулов</span>
+              <span className="text-2xl font-bold text-white tracking-tight">
+                {aggregatedResults.length.toLocaleString('ru-RU')}
+              </span>
+              <span className="text-[10px] text-[#10b981] flex items-center gap-1">
+                среди {parsedData.length} предложений
+              </span>
+            </div>
+
+            <div className="bg-gradient-to-tr from-[#1a1d24] to-[#16191f] border border-[#2a2d35] rounded-xl p-4 flex flex-col gap-1.5 relative overflow-hidden group">
+              <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition duration-300">
+                <TrendingDown className="w-10 h-10 text-[#10b981]" />
+              </div>
+              <span className="text-xs text-[#8b8fa3] font-medium">Экономия на закупках</span>
+              <span className="text-2xl font-bold text-[#10b981] tracking-tight">
+                {globalMetrics.savedTotal > 0 ? `${globalMetrics.savedTotal.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽` : '—'}
+              </span>
+              <span className="text-[10px] text-[#8b8fa3]">
+                по {globalMetrics.competingItemsCount} конкурирующим товарам
+              </span>
+            </div>
+
+            <div className="bg-gradient-to-tr from-[#1a1d24] to-[#16191f] border border-[#2a2d35] rounded-xl p-4 flex flex-col gap-1.5 relative overflow-hidden group">
+              <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition duration-300">
+                <FileCode className="w-10 h-10 text-violet-400" />
+              </div>
+              <span className="text-xs text-[#8b8fa3] font-medium">Успешных источников</span>
+              <span className="text-2xl font-bold text-violet-400 tracking-tight">
+                {files.filter(f => f.status === 'success').length} / {files.length}
+              </span>
+              <span className="text-[10px] text-[#8b8fa3]">
+                обработано без ошибок
+              </span>
+            </div>
+
+            <div className="bg-gradient-to-tr from-[#1a1d24] to-[#16191f] border border-[#2a2d35] rounded-xl p-4 flex flex-col gap-1.5 relative overflow-hidden group">
+              <div className="absolute right-3 top-3 opacity-10 group-hover:scale-110 transition duration-300">
+                <Activity className="w-10 h-10 text-[#764ba2]" />
+              </div>
+              <span className="text-xs text-[#8b8fa3] font-medium">Средняя цена товара</span>
+              <span className="text-2xl font-bold text-white tracking-tight">
+                {globalMetrics.avgPrice.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} ₽
+              </span>
+              <span className="text-[10px] text-[#8b8fa3]">
+                выбранного по минимальному прайсу
+              </span>
+            </div>
+
+          </section>
+        )}
+
+        {/* Aggregated Data View & Controls */}
+        {aggregatedResults.length > 0 && (
+          <section className="bg-[#1a1d24] border border-[#2a2d35] rounded-xl overflow-hidden flex flex-col gap-4 p-5">
+            
+            {/* Header + Actions row */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Результаты оптимизации</h2>
+                <p className="text-xs text-[#8b8fa3]">Для каждого артикула выбрано самое дешевое предложение из прайс-листов папки</p>
+              </div>
+
+              {/* Action buttons (Downloaders) */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button 
+                  onClick={downloadExcel}
+                  className="px-4 py-2 bg-[#10b981] hover:bg-[#059669] text-xs font-semibold text-white rounded-lg shadow-lg shadow-emerald-900/20 transition flex items-center gap-2 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Скачать в Excel</span>
+                </button>
+                <button 
+                  onClick={downloadCSV}
+                  className="px-4 py-2 bg-[#667eea] hover:bg-[#5a6fd6] text-xs font-semibold text-white rounded-lg shadow-lg shadow-[#667eea]/20 transition flex items-center gap-2 cursor-pointer"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Скачать в CSV</span>
+                </button>
+                <button 
+                  onClick={copyToClipboard}
+                  className="px-4 py-2 bg-[#2a2d35] hover:bg-[#343842] text-xs font-semibold text-[#d4d4d8] border border-[#3a3d45] rounded-lg transition flex items-center gap-2 cursor-pointer"
+                >
+                  {copied ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied ? 'Скопировано!' : 'Буфер (TSV)'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Filter and limits */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0e1117] p-3 rounded-lg border border-[#2a2d35]">
+              
+              {/* Search */}
+              <div className="relative flex-grow max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-[#6b7280]" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Поиск по артикулу, бренду или источнику..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-9 pr-3 py-1.5 bg-[#1a1d24] border border-[#2a2d35] rounded-md text-xs text-white placeholder-[#6b7280] focus:outline-none focus:border-[#667eea] transition"
+                />
+              </div>
+
+              {/* Items per page */}
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[11px] text-[#8b8fa3]">Показывать по:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="bg-[#1a1d24] border border-[#2a2d35] rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-[#667eea]"
+                >
+                  <option value={10}>10</option>
+                  <option value={15}>15</option>
+                  <option value={30}>30</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Main Interactive Table */}
+            <div className="overflow-x-auto rounded-lg border border-[#2a2d35]">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-[#2a2d35]/30 text-xs font-semibold text-[#8b8fa3] uppercase border-b border-[#2a2d35]">
+                    <th 
+                      onClick={() => handleSort('article')}
+                      className="py-3 px-4 cursor-pointer hover:text-white transition select-none"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Артикул</span>
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleSort('brand')}
+                      className="py-3 px-4 cursor-pointer hover:text-white transition select-none"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Бренд</span>
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleSort('price')}
+                      className="py-3 px-4 cursor-pointer hover:text-white transition select-none text-right"
+                    >
+                      <div className="flex items-center justify-end gap-1">
+                        <span>Цена (минимальная)</span>
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th 
+                      onClick={() => handleSort('source')}
+                      className="py-3 px-4 cursor-pointer hover:text-white transition select-none"
+                    >
+                      <div className="flex items-center gap-1">
+                        <span>Название источника (Прайса)</span>
+                        <ArrowUpDown className="w-3 h-3" />
+                      </div>
+                    </th>
+                    <th className="py-3 px-4 text-center">Всего предложений</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#2a2d35]/50 text-xs font-medium">
+                  {paginatedResults.length > 0 ? (
+                    paginatedResults.map((item, index) => {
+                      // Determine savings for tooltip or small badge
+                      let savings = null;
+                      if (item.allPrices.length > 1) {
+                        const prices = item.allPrices.map(p => p.price);
+                        const maxPrice = Math.max(...prices);
+                        if (maxPrice > item.price) {
+                          savings = maxPrice - item.price;
+                        }
+                      }
+
+                      return (
+                        <tr key={index} className="hover:bg-[#2a2d35]/15 transition duration-150">
+                          <td className="py-3 px-4 font-mono text-white text-[13px]">{item.article}</td>
+                          <td className="py-3 px-4 text-[#d4d4d8]">{item.brand}</td>
+                          <td className="py-3 px-4 text-right text-emerald-400 font-bold text-[13px]">
+                            {item.price.toLocaleString('ru-RU', { minimumFractionDigits: 1 })} ₽
+                            {savings !== null && (
+                              <div className="text-[10px] text-emerald-500 font-medium leading-none mt-0.5" title="Экономия по сравнению с максимальным предложением">
+                                -{savings.toLocaleString('ru-RU')} ₽
+                              </div>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#2a2d35]/60 text-white/80 border border-[#3a3d45]">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#667eea]"></span>
+                              <span className="truncate max-w-[180px]" title={item.source}>{item.source}</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              item.allPrices.length > 1 
+                                ? 'bg-[#667eea]/20 text-[#a5b4fc] border border-[#667eea]/30' 
+                                : 'bg-zinc-800 text-zinc-400'
+                            }`}>
+                              {item.allPrices.length} {item.allPrices.length > 1 ? 'варианта' : 'вариант'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-[#6b7280]">
+                        Нет совпадений по вашему запросу. Попробуйте изменить фильтр.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-[#2a2d35]">
+              <span className="text-[11px] text-[#8b8fa3]">
+                Показано <b className="text-white">{Math.min(currentPage * itemsPerPage, filteredAndSortedResults.length)}</b> из <b className="text-white">{filteredAndSortedResults.length}</b> уникальных записей
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className="px-2.5 py-1 bg-[#2a2d35] hover:bg-[#343842] disabled:opacity-40 text-xs font-semibold rounded transition cursor-pointer"
+                >
+                  Назад
+                </button>
+                
+                {Array.from({ length: totalPages }).map((_, idx) => {
+                  const pNum = idx + 1;
+                  // Show current page, and surrounding pages, plus first and last
+                  const isNear = Math.abs(pNum - currentPage) <= 1;
+                  const isFirstOrLast = pNum === 1 || pNum === totalPages;
+                  
+                  if (!isNear && !isFirstOrLast) {
+                    if (pNum === 2 || pNum === totalPages - 1) {
+                      return <span key={idx} className="text-[#6b7280] px-1 text-xs">...</span>;
+                    }
+                    return null;
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentPage(pNum)}
+                      className={`px-2.5 py-1 text-xs font-semibold rounded transition cursor-pointer ${
+                        currentPage === pNum 
+                          ? 'bg-[#667eea] text-white' 
+                          : 'bg-[#2a2d35] hover:bg-[#343842] text-[#8b8fa3]'
+                      }`}
+                    >
+                      {pNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className="px-2.5 py-1 bg-[#2a2d35] hover:bg-[#343842] disabled:opacity-40 text-xs font-semibold rounded transition cursor-pointer"
+                >
+                  Вперед
+                </button>
+              </div>
+            </div>
+
+          </section>
+        )}
+
+        {/* Informative Help Card / Features */}
+        <section className="bg-[#1a1d24]/50 border border-[#2a2d35] rounded-xl p-5 flex gap-4">
+          <Info className="w-6 h-6 text-[#667eea] shrink-0" />
+          <div className="text-xs leading-relaxed text-[#8b8fa3]">
+            <h4 className="font-bold text-white mb-1.5 text-sm">💡 Преимущества монолитного веб-приложения:</h4>
+            <ul className="list-disc pl-4 space-y-1">
+              <li><b>Конфиденциальность:</b> Ваши файлы обрабатываются на 100% локально на вашем компьютере. Данные не передаются в интернет и не сохраняются на серверах.</li>
+              <li><b>Универсальное распознавание:</b> Автоматически очищаются некорректные символы рубля, разделители тысяч, пробелы в ценах, а также приводятся к единому формату буквенные обозначения артикулов.</li>
+              <li><b>Дубликаты артикулов:</b> Приложение безошибочно сопоставляет несколько поставщиков и находит именно тот файл, который предлагает самую низкую цену для оптимизации вашей маржи.</li>
+            </ul>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  );
+}
