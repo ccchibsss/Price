@@ -204,50 +204,68 @@ st.markdown(
         margin-bottom: 0.9rem;
     }
 
-    /* ── Инпуты и селекты ── */
-    .stSelectbox > div > div,
-    .stTextInput > div > div > input {
-        background: #16161b !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    /* ── Инпуты, селекты, текстовые поля и выпадающие списки (Тёмный фон + белые буквы) ── */
+    input, select, .stSelectbox > div > div, .stTextInput > div > div > input, [data-testid="stTextInputRootElement"] input {
+        background: #121217 !important;
+        background-color: #121217 !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
         color: #ffffff !important;
         border-radius: 12px !important;
     }
     .stSelectbox > div > div:focus-within,
-    .stTextInput > div > div > input:focus {
+    .stTextInput > div > div > input:focus,
+    [data-testid="stTextInputRootElement"]:focus-within {
         border-color: #8b5cf6 !important;
         box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2) !important;
     }
     
-    /* Исправление видимости шрифтов при белом/светлом фоне в Streamlit (Light Mode) */
-    input, .stTextInput input, [data-testid="stTextInputRootElement"] input {
-        color: #1e293b !important;
-        background-color: #ffffff !important;
-    }
-    input::placeholder, .stTextInput input::placeholder {
-        color: #64748b !important;
-        opacity: 0.9 !important;
+    /* Заголовки, лейблы и плейсхолдеры внутри инпутов */
+    input::placeholder, .stTextInput input::placeholder, [data-testid="stTextInputRootElement"] input::placeholder {
+        color: #a1a1aa !important;
+        opacity: 0.85 !important;
     }
     
-    /* Исправление фона и цвета шрифтов внутри File Uploader при белом/светлом фоне */
-    [data-testid="stFileUploader"] {
-        background-color: #ffffff !important;
-        border: 2px dashed #cbd5e1 !important;
+    /* Стилизация выпадающих селекторов в Streamlit */
+    div[data-baseweb="select"] > div {
+        background-color: #121217 !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 12px !important;
     }
-    [data-testid="stFileUploader"] *, [data-testid="stFileUploader"] span, [data-testid="stFileUploader"] p {
-        color: #0f172a !important;
+    div[data-baseweb="select"] * {
+        color: #ffffff !important;
+    }
+    
+    /* ── Стилизация File Uploader (Полностью тёмная тема + белые/светлые буквы) ── */
+    [data-testid="stFileUploader"] {
+        background-color: #121217 !important;
+        background: #121217 !important;
+        border: 2px dashed rgba(255, 255, 255, 0.15) !important;
+        border-radius: 16px !important;
+    }
+    [data-testid="stFileUploader"] *, 
+    [data-testid="stFileUploader"] span, 
+    [data-testid="stFileUploader"] p, 
+    [data-testid="stFileUploader"] label {
+        color: #f4f4f5 !important;
     }
     [data-testid="stFileUploader"] button {
-        background-color: #f1f5f9 !important;
-        color: #0f172a !important;
-        border: 1px solid #cbd5e1 !important;
+        background-color: #1f1f2e !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+        transition: background 0.2s !important;
     }
     [data-testid="stFileUploader"] button:hover {
-        background-color: #e2e8f0 !important;
+        background-color: #2e2e3f !important;
+        border-color: #8b5cf6 !important;
     }
     
-    /* Подсветка подсказки скрепки и названия файлов */
+    /* Подсветка подсказки скрепки и названия файлов в тёмной теме */
     [data-testid="stFileUploader"] svg {
-        fill: #4f46e5 !important;
+        fill: #a78bfa !important;
+        color: #a78bfa !important;
     }
 
     /* ── Табы ── */
