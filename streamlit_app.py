@@ -51,34 +51,53 @@ st.markdown(
     }
     [data-testid="stToolbar"] { display: none !important; }
     [data-testid="stDecoration"] { display: none !important; }
-    header[data-testid="stHeader"] { background: transparent !important; }
-
-    /* ── Кнопка разворачивания свёрнутого сайдбара (должна быть ВСЕГДА видна) ── */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-        background: #0f2440 !important;
-        border: 1px solid rgba(96, 165, 250, 0.55) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
-        padding: 2px !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] button {
+    header[data-testid="stHeader"] {
         background: transparent !important;
+        z-index: 999999 !important;
     }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] button svg,
-    header[data-testid="stHeader"] svg,
-    header[data-testid="stHeader"] button svg {
-        fill: #7dd3fc !important;
-        color: #7dd3fc !important;
-        opacity: 1 !important;
-    }
-    header[data-testid="stHeader"] button {
-        background: #0f2440 !important;
+
+    /* ── КНОПКА СВЕРНУТЬ / РАЗВЕРНУТЬ САЙДБАР ── */
+    /* Системные кнопки в шапке (включая кнопку разворачивания сайдбара >) */
+    header[data-testid="stHeader"] button,
+    [data-testid="baseButton-header"],
+    [data-testid="baseButton-headerNoPadding"],
+    [data-testid="collapsedControl"],
+    [data-testid="collapsedControl"] button,
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarCollapseButton"] button {
+        background: #1e3a5f !important;
+        background-color: #1e3a5f !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(96, 165, 250, 0.6) !important;
         border-radius: 10px !important;
+        box-shadow: 0 4px 14px rgba(15, 36, 64, 0.8) !important;
+        padding: 6px !important;
+        z-index: 999999 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    header[data-testid="stHeader"] button:hover,
+    [data-testid="baseButton-header"]:hover,
+    [data-testid="baseButton-headerNoPadding"]:hover,
+    [data-testid="collapsedControl"] button:hover,
+    [data-testid="stSidebarCollapseButton"] button:hover {
+        background-color: #2d5a87 !important;
+        border-color: #60a5fa !important;
+        transform: scale(1.05);
+    }
+    header[data-testid="stHeader"] button svg,
+    [data-testid="baseButton-header"] svg,
+    [data-testid="baseButton-headerNoPadding"] svg,
+    [data-testid="collapsedControl"] svg,
+    [data-testid="stSidebarCollapseButton"] svg {
+        fill: #bfdbfe !important;
+        color: #bfdbfe !important;
+        stroke: #bfdbfe !important;
+    }
+    [data-testid="collapsedControl"] {
+        margin-left: 0.8rem !important;
+        margin-top: 0.8rem !important;
     }
 
     /* ── Кнопки управления (ТЁМНО-СИНИЕ) ── */
@@ -105,14 +124,6 @@ st.markdown(
         opacity: 0.5 !important;
         cursor: not-allowed !important;
     }
-    /* значок ▶ в тёмных сайдбар-кнопках — яркий, не сливается */
-    .stButton > button {
-        color: #ffffff !important;
-    }
-    .stButton > button b,
-    .stButton > button span:first-child {
-        color: #7dd3fc !important;
-    }
 
     /* ── Кнопки скачивания (ТЁМНО-ЗЕЛЁНЫЕ) ── */
     .stDownloadButton > button {
@@ -134,135 +145,149 @@ st.markdown(
         border-color: rgba(16, 185, 129, 0.6) !important;
     }
 
-    /* ── Загрузчик файлов ── */
+    /* ── Загрузчик файлов ─ */
     [data-testid="stFileUploader"] {
-        background: rgba(15, 36, 64, 0.85) !important;
-        border: 2px dashed rgba(56, 189, 248, 0.45) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 2px dashed rgba(255, 255, 255, 0.2) !important;
         border-radius: 16px !important;
         padding: 1.2rem !important;
         transition: all 0.2s;
     }
     [data-testid="stFileUploader"]:hover {
-        border-color: rgba(56, 189, 248, 0.8) !important;
-        background: rgba(15, 36, 64, 0.95) !important;
+        border-color: rgba(96, 165, 250, 0.6) !important;
+        background: rgba(96, 165, 250, 0.05) !important;
     }
-    /* убираем белый фон дропзоны во всех вложенных элементах */
-    [data-testid="stFileUploadDropzone"],
-    section[data-testid="stFileUploadDropzone"],
-    [data-testid="stFileUploadDropzone"] > div,
-    [data-testid="stFileUploadDropzoneInput"],
-    [data-testid="stFileUploader"] > div,
-    [data-testid="stFileUploader"] section,
-    [data-testid="stFileUploader"] > div > div,
-    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] {
+    [data-testid="stFileUploadDropzone"] {
         background: transparent !important;
-        background-color: transparent !important;
-    }
-    [data-testid="stFileUploader"] small,
-    [data-testid="stFileUploadDropzone"] small {
-        color: #9db8d8 !important;
-    }
-    /* карточки загруженных файлов (список под дропзоной) */
-    [data-testid="stFileUploaderFile"],
-    [data-testid="stFileUploaderFile"] > div,
-    [data-testid="stFileUploader"] ul,
-    [data-testid="stFileUploader"] ul li,
-    [data-testid="stFileUploader"] ul li > div {
-        background: rgba(15, 36, 64, 0.9) !important;
-        background-color: rgba(15, 36, 64, 0.9) !important;
-        border-radius: 10px !important;
-    }
-    [data-testid="stFileUploaderFile"] {
-        border: 1px solid rgba(96, 165, 250, 0.25) !important;
-        margin-bottom: 0.3rem !important;
-    }
-    [data-testid="stFileUploaderFile"] *,
-    [data-testid="stFileUploaderFileName"],
-    [data-testid="stFileUploaderFileData"] small {
-        color: #e8eefc !important;
-    }
-    [data-testid="stFileUploaderDeleteBtn"] button,
-    [data-testid="stFileUploaderFile"] button {
-        background: transparent !important;
-        border: none !important;
-    }
-    [data-testid="stFileUploaderDeleteBtn"] svg,
-    [data-testid="stFileUploaderFile"] button svg {
-        fill: #93c5fd !important;
-        color: #93c5fd !important;
     }
     [data-testid="stFileUploader"] *,
     [data-testid="stFileUploader"] span,
     [data-testid="stFileUploader"] p,
-    [data-testid="stFileUploader"] label,
-    [data-testid="stFileUploader"] div {
-        color: #e8eefc !important;
+    [data-testid="stFileUploader"] label {
+        color: #f4f4f5 !important;
     }
     [data-testid="stFileUploader"] button {
         background-color: #0f2440 !important;
         color: #ffffff !important;
-        border: 1px solid rgba(56, 189, 248, 0.45) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
         border-radius: 10px !important;
         font-weight: 600 !important;
     }
     [data-testid="stFileUploader"] button:hover {
         background-color: #1e3a5f !important;
-        border-color: #38bdf8 !important;
+        border-color: #60a5fa !important;
     }
     [data-testid="stFileUploader"] svg {
-        fill: #7dd3fc !important;
-        color: #7dd3fc !important;
+        fill: #93c5fd !important;
+        color: #93c5fd !important;
     }
-
-    /* ── Мульти-селект (выбор столбцов для выгрузки) ── */
-    [data-testid="stMultiSelect"] label,
-    [data-testid="stMultiSelect"] label p,
-    [data-testid="stMultiSelect"] > label p {
+    /* ── ФИКС: белый фон списка загруженных файлов ── */
+    [data-testid="stFileUploader"] section,
+    [data-testid="stFileUploader"] > div,
+    [data-testid="stFileUploader"] > div > div,
+    [data-testid="stFileUploader"] ul {
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+    /* Белая карточка вокруг списка файлов (как на скрине) */
+    [data-testid="stFileUploader"] > div > div:has(ul),
+    [data-testid="stFileUploader"] section + div {
+        background: rgba(15, 36, 64, 0.55) !important;
+        background-color: rgba(15, 36, 64, 0.55) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 12px !important;
+        padding: 0.75rem !important;
+    }
+    /* Каждый файл в списке */
+    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"],
+    [data-testid="stFileUploader"] li,
+    [data-testid="stFileUploader"] li[data-testid="stFileUploaderFile"] {
+        background: rgba(30, 58, 95, 0.9) !important;
+        background-color: rgba(30, 58, 95, 0.9) !important;
+        border: 1px solid rgba(147, 197, 253, 0.25) !important;
+        border-radius: 12px !important;
+    }
+    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] * {
         color: #f4f4f5 !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
     }
-    [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
-        background-color: #0f2440 !important;
-        border: 1px solid rgba(96, 165, 250, 0.35) !important;
-        border-radius: 12px !important;
+    [data-testid="stFileUploader"] [data-testid="stFileUploaderFile"] small {
+        color: #93c5fd !important;
     }
-    [data-testid="stMultiSelect"] [data-baseweb="select"]:focus-within > div {
-        border-color: #60a5fa !important;
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
+    /* Ловим инлайновые белые фоны Streamlit */
+    [data-testid="stFileUploader"] div[style*="background-color: rgb(255"],
+    [data-testid="stFileUploader"] div[style*="background-color: #fff"],
+    [data-testid="stFileUploader"] div[style*="background: rgb(255"],
+    [data-testid="stFileUploader"] div[style*="background: #fff"],
+    [data-testid="stFileUploader"] [style*="255, 255"],
+    [data-testid="stFileUploader"] [style*="255,255"],
+    [data-testid="stFileUploader"] div[style*="240, 242"],
+    [data-testid="stFileUploader"] div[style*="242, 246"],
+    [data-testid="stFileUploader"] [style*="f0f2f6"],
+    [data-testid="stFileUploader"] [style*="F0F2F6"],
+    [data-testid="stFileUploader"] [style*="ffffff"],
+    [data-testid="stFileUploader"] [style*="FFFFFF"],
+    [data-testid="stFileUploader"] [style*="rgb(255"],
+    [data-testid="stFileUploader"] [style*="background"],
+    [data-testid="stFileUploader"] .st-emotion-cache,
+    [data-testid="stFileUploader"] .st-ae,
+    [data-testid="stFileUploader"] .st-af {
+        background: rgba(15, 36, 64, 0.6) !important;
+        background-color: rgba(15, 36, 64, 0.6) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
     }
-    [data-testid="stMultiSelect"] input {
+    /* Принудительно тёмный фон для любого светлого контейнера внутри */
+    [data-testid="stFileUploader"] > div > div > div,
+    [data-testid="stFileUploader"] .st-emotion-cache > div,
+    [data-testid="stFileUploader"] .st-ae > div,
+    [data-testid="stFileUploader"] .st-af {
+        background: rgba(15, 36, 64, 0.45) !important;
+        background-color: rgba(15, 36, 64, 0.45) !important;
+    }
+    /* Кнопка Upload */
+    [data-testid="stFileUploader"] button[kind="secondary"],
+    [data-testid="stFileUploader"] button[data-testid="baseButton-secondary"] {
+        background: linear-gradient(135deg, #1e3a5f, #0f2440) !important;
         color: #ffffff !important;
-    }
-    [data-testid="stMultiSelect"] input::placeholder {
-        color: #7d9ac2 !important;
-    }
-    [data-testid="stMultiSelect"] [data-baseweb="tag"] {
-        background: rgba(56, 189, 248, 0.18) !important;
-        color: #bae6fd !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-    }
-    [data-testid="stMultiSelect"] [data-baseweb="tag"] svg {
-        fill: #bae6fd !important;
-        color: #bae6fd !important;
-    }
-    /* выпадающий список опций мульти-селекта */
-    [data-baseweb="popover"] div[role="listbox"],
-    [data-baseweb="menu"] {
-        background-color: #0f2440 !important;
         border: 1px solid rgba(96, 165, 250, 0.3) !important;
-        border-radius: 12px !important;
     }
-    [data-baseweb="menu"] li,
-    [data-baseweb="menu"] li * {
-        color: #e8eefc !important;
+    /* Dropzone текст */
+    [data-testid="stFileUploadDropzone"] p,
+    [data-testid="stFileUploadDropzone"] span,
+    [data-testid="stFileUploadDropzone"] * {
+        color: #f4f4f5 !important;
     }
-    [data-baseweb="menu"] li:hover,
-    li[role="option"]:hover,
-    div[role="option"]:hover {
-        background-color: rgba(56, 189, 248, 0.18) !important;
+    /* Финальный override Streamlit: убираем системные белые карточки файлов */
+    [data-testid="stFileUploader"] section div,
+    [data-testid="stFileUploader"] section li,
+    [data-testid="stFileUploader"] section [role="listitem"] {
+        background-color: transparent !important;
+    }
+    /* Строка загруженного файла определяется по кнопке удаления */
+    [data-testid="stFileUploader"] section div:has(button),
+    [data-testid="stFileUploader"] section li,
+    [data-testid="stFileUploader"] section [role="listitem"],
+    [data-testid="stFileUploader"] [data-testid*="File"] {
+        background: rgba(30, 58, 95, 0.96) !important;
+        background-color: rgba(30, 58, 95, 0.96) !important;
+        border: 1px solid rgba(147, 197, 253, 0.28) !important;
+        border-radius: 10px !important;
+        color: #f4f4f5 !important;
+    }
+    [data-testid="stFileUploader"] section div:has(button) * {
+        color: #f4f4f5 !important;
+    }
+    /* Кнопки Upload и удаления остаются тёмными и читаемыми */
+    [data-testid="stFileUploader"] section button,
+    [data-testid="stFileUploader"] section button[kind="secondary"] {
+        background: #0f2440 !important;
+        background-color: #0f2440 !important;
+        color: #ffffff !important;
+        border-color: rgba(147, 197, 253, 0.35) !important;
+    }
+    /* Иконка файла */
+    [data-testid="stFileUploaderFile"] svg {
+        fill: #bfdbfe !important;
+        color: #bfdbfe !important;
     }
 
     /* ── Метрики ── */
@@ -473,6 +498,35 @@ st.markdown(
         color: #f4f4f5 !important;
     }
     [data-testid="stAlert"] * { color: #f4f4f5 !important; }
+
+    /* ── Секция экспорта: белый текст ── */
+    .section-title {
+        color: #ffffff !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    /* Multiselect текст */
+    [data-testid="stMultiSelect"] *,
+    [data-testid="stMultiSelect"] label,
+    [data-testid="stMultiSelect"] span,
+    div[data-baseweb="select"] *,
+    div[data-baseweb="select"] label,
+    div[data-baseweb="select"] span {
+        color: #ffffff !important;
+    }
+    div[data-baseweb="select"] > div {
+        background-color: #1e3a5f !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    div[data-baseweb="menu"] {
+        background-color: #1e3a5f !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    div[data-baseweb="menu"] * {
+        color: #ffffff !important;
+    }
+    div[data-baseweb="option"]:hover {
+        background-color: #2d5a87 !important;
+    }
 
     hr { border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 1.5rem 0; }
 
@@ -830,18 +884,11 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
 
-    # Нормализация ключа для группировки (без пробелов, регистра, дефисов) — до дедупликации
-    df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_\.\,]+", "", regex=True)
-    df = df[df["_key"].str.len() > 0]
-
-    if df.empty:
-        return pd.DataFrame()
-
-    # Количество ВСЕХ строк (предложений) по артикулу во всех файлах, включая дубли
-    qty = df.groupby("_key").size().rename("Количество").reset_index()
-
     # Дедупликация: один артикул + один источник = одна запись (мин. цена)
-    df = df.sort_values("Цена").drop_duplicates(subset=["_key", "Источник"], keep="first")
+    df = df.sort_values("Цена").drop_duplicates(subset=["Артикул", "Источник"], keep="first")
+
+    # Нормализация ключа для группировки (без пробелов, регистр)
+    df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_\.\,]+", "", regex=True)
 
     # УНИКАЛЬНЫЕ источники + мин/макс цены
     grp = df.groupby("_key").agg(
@@ -853,7 +900,7 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     # Индекс минимальной цены (среди всех строк для этого артикула)
     idx_min = df.groupby("_key")["Цена"].idxmin()
     df_best = df.loc[idx_min].copy()
-    df_best = df_best.merge(grp, on="_key", how="left").merge(qty, on="_key", how="left")
+    df_best = df_best.merge(grp, on="_key", how="left")
     df_best = df_best.drop(columns=["_key", "Цена"], errors="ignore")
     df_best = df_best.rename(columns={"Цена_мин": "Цена"})
 
@@ -867,7 +914,7 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
 
     cols = [
         "Артикул", "Бренд", "Цена", "Источник",
-        "Предложений", "Количество", "Цена_макс", "Экономия_руб", "Экономия_%",
+        "Предложений", "Цена_макс", "Экономия_руб", "Экономия_%",
     ]
     df_best = df_best[[c for c in cols if c in df_best.columns]]
     df_best = df_best.sort_values("Артикул").reset_index(drop=True)
@@ -1357,31 +1404,37 @@ if not df_final.empty:
         if sel_source_val != "Все источники":
             df_view = df_view[df_view["Источник"] == sel_source_val]
 
+        # Доступные столбцы для экспорта (все из df_final)
+        all_available = [
+            "Артикул", "Бренд", "Цена", "Источник",
+            "Предложений", "Цена_макс", "Экономия_руб", "Экономия_%",
+        ]
+        all_available = [c for c in all_available if c in df_final.columns]
+
+        # Выбор столбцов для экспорта
+        selected_count = len(export_col_selection) if export_col_selection else 0
+        export_col_selection = st.multiselect(
+            f"💾 Столбцы для выгрузки ({selected_count} из {len(all_available)})",
+            options=all_available,
+            default=all_available,
+            key="export_cols",
+            help="Выберите, какие столбцы включить в итоговый Excel/CSV",
+        )
+
         disp_cols = [
             "Артикул", "Бренд", "Цена", "Источник",
-            "Предложений", "Количество", "Экономия_руб", "Экономия_%",
+            "Предложений", "Экономия_руб", "Экономия_%",
         ]
         disp_cols = [c for c in disp_cols if c in df_view.columns]
+
+        # Столбцы для экспорта (могут включать дополнительные)
+        export_disp_cols = export_col_selection if export_col_selection else disp_cols
 
         # ── Экспорт (СВЕРХУ ТАБЛИЦЫ) ──
         st.markdown(
             '<div class="section-title" style="margin-top:0.8rem;">💾 Скачивание результата</div>',
             unsafe_allow_html=True,
         )
-
-        # Выбор столбцов для выгрузки
-        all_available_cols = df_view.columns.tolist()
-        export_cols = st.multiselect(
-            "Выберите столбцы для выгрузки",
-            options=all_available_cols,
-            default=[c for c in disp_cols if c in all_available_cols],
-            help="Укажите, какие именно колонки должны попасть в итоговый Excel и CSV файл."
-        )
-        if not export_cols:
-            export_cols = [c for c in ["Артикул", "Цена", "Источник"] if c in all_available_cols]
-            st.caption("⚠️ Не выбрано ни одного столбца — будет выгружен базовый набор: Артикул, Цена, Источник.")
-        else:
-            st.caption(f"📊 В файл попадёт столбцов: {len(export_cols)}")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         n_rows = len(df_view)
@@ -1418,11 +1471,13 @@ if not df_final.empty:
 
         prog.progress(25, text="Формирование Excel (.xlsx)…")
         with st.spinner("⏳ Создаём Excel-файл…"):
-            excel_bytes = to_excel_bytes(df_view[export_cols])
+            # Формируем из отфильтрованных данных, но с выбранными столбцами
+            df_export = df_view[[c for c in export_disp_cols if c in df_view.columns]]
+            excel_bytes = to_excel_bytes(df_export)
 
         prog.progress(70, text="Формирование CSV (.csv)…")
         with st.spinner("⏳ Создаём CSV-файл…"):
-            csv_bytes = to_csv_bytes(df_view[export_cols])
+            csv_bytes = to_csv_bytes(df_export)
 
         prog.progress(100, text="Готово!")
         excel_size = format_file_size(len(excel_bytes))
@@ -1495,10 +1550,6 @@ if not df_final.empty:
                 "Предложений": st.column_config.NumberColumn(
                     "📊 Источников", width="small",
                     help="Кол-во уникальных поставщиков",
-                ),
-                "Количество": st.column_config.NumberColumn(
-                    "🔢 Кол-во строк", width="small",
-                    help="Всего строк с этим артикулом во всех загруженных прайсах (включая дубли)",
                 ),
                 "Экономия_руб": st.column_config.NumberColumn("💚 Экономия (₽)", format="%.2f ₽", width="small"),
                 "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
