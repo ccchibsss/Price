@@ -20,7 +20,7 @@ st.set_page_config(
     page_title="Price.Fusion — Агрегатор прайсов",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="auto",
+    initial_sidebar_state="expanded",
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -53,34 +53,6 @@ st.markdown(
     [data-testid="stDecoration"] { display: none !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
 
-    /* ── Кнопка разворачивания свёрнутого сайдбара (должна быть ВСЕГДА видна) ── */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: flex !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        z-index: 999999 !important;
-        background: #0f2440 !important;
-        border: 1px solid rgba(96, 165, 250, 0.55) !important;
-        border-radius: 10px !important;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45) !important;
-        padding: 2px !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] button {
-        background: transparent !important;
-    }
-    [data-testid="stSidebarCollapsedControl"] svg,
-    [data-testid="stSidebarCollapsedControl"] button svg,
-    header[data-testid="stHeader"] svg,
-    header[data-testid="stHeader"] button svg {
-        fill: #7dd3fc !important;
-        color: #7dd3fc !important;
-        opacity: 1 !important;
-    }
-    header[data-testid="stHeader"] button {
-        background: #0f2440 !important;
-        border-radius: 10px !important;
-    }
-
     /* ── Кнопки управления (ТЁМНО-СИНИЕ) ── */
     .stButton > button {
         background: linear-gradient(135deg, #1e3a5f 0%, #0f2440 100%) !important;
@@ -104,14 +76,6 @@ st.markdown(
     .stButton > button:disabled {
         opacity: 0.5 !important;
         cursor: not-allowed !important;
-    }
-    /* значок ▶ в тёмных сайдбар-кнопках — яркий, не сливается */
-    .stButton > button {
-        color: #ffffff !important;
-    }
-    .stButton > button b,
-    .stButton > button span:first-child {
-        color: #7dd3fc !important;
     }
 
     /* ── Кнопки скачивания (ТЁМНО-ЗЕЛЁНЫЕ) ── */
@@ -146,50 +110,8 @@ st.markdown(
         border-color: rgba(56, 189, 248, 0.8) !important;
         background: rgba(15, 36, 64, 0.95) !important;
     }
-    /* убираем белый фон дропзоны во всех вложенных элементах */
-    [data-testid="stFileUploadDropzone"],
-    section[data-testid="stFileUploadDropzone"],
-    [data-testid="stFileUploadDropzone"] > div,
-    [data-testid="stFileUploadDropzoneInput"],
-    [data-testid="stFileUploader"] > div,
-    [data-testid="stFileUploader"] section,
-    [data-testid="stFileUploader"] > div > div,
-    [data-testid="stFileUploader"] [data-testid="stFileUploadDropzone"] {
+    [data-testid="stFileUploadDropzone"] {
         background: transparent !important;
-        background-color: transparent !important;
-    }
-    [data-testid="stFileUploader"] small,
-    [data-testid="stFileUploadDropzone"] small {
-        color: #9db8d8 !important;
-    }
-    /* карточки загруженных файлов (список под дропзоной) */
-    [data-testid="stFileUploaderFile"],
-    [data-testid="stFileUploaderFile"] > div,
-    [data-testid="stFileUploader"] ul,
-    [data-testid="stFileUploader"] ul li,
-    [data-testid="stFileUploader"] ul li > div {
-        background: rgba(15, 36, 64, 0.9) !important;
-        background-color: rgba(15, 36, 64, 0.9) !important;
-        border-radius: 10px !important;
-    }
-    [data-testid="stFileUploaderFile"] {
-        border: 1px solid rgba(96, 165, 250, 0.25) !important;
-        margin-bottom: 0.3rem !important;
-    }
-    [data-testid="stFileUploaderFile"] *,
-    [data-testid="stFileUploaderFileName"],
-    [data-testid="stFileUploaderFileData"] small {
-        color: #e8eefc !important;
-    }
-    [data-testid="stFileUploaderDeleteBtn"] button,
-    [data-testid="stFileUploaderFile"] button {
-        background: transparent !important;
-        border: none !important;
-    }
-    [data-testid="stFileUploaderDeleteBtn"] svg,
-    [data-testid="stFileUploaderFile"] button svg {
-        fill: #93c5fd !important;
-        color: #93c5fd !important;
     }
     [data-testid="stFileUploader"] *,
     [data-testid="stFileUploader"] span,
@@ -212,57 +134,6 @@ st.markdown(
     [data-testid="stFileUploader"] svg {
         fill: #7dd3fc !important;
         color: #7dd3fc !important;
-    }
-
-    /* ── Мульти-селект (выбор столбцов для выгрузки) ── */
-    [data-testid="stMultiSelect"] label,
-    [data-testid="stMultiSelect"] label p,
-    [data-testid="stMultiSelect"] > label p {
-        color: #f4f4f5 !important;
-        font-weight: 600 !important;
-        font-size: 0.85rem !important;
-    }
-    [data-testid="stMultiSelect"] [data-baseweb="select"] > div {
-        background-color: #0f2440 !important;
-        border: 1px solid rgba(96, 165, 250, 0.35) !important;
-        border-radius: 12px !important;
-    }
-    [data-testid="stMultiSelect"] [data-baseweb="select"]:focus-within > div {
-        border-color: #60a5fa !important;
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.25) !important;
-    }
-    [data-testid="stMultiSelect"] input {
-        color: #ffffff !important;
-    }
-    [data-testid="stMultiSelect"] input::placeholder {
-        color: #7d9ac2 !important;
-    }
-    [data-testid="stMultiSelect"] [data-baseweb="tag"] {
-        background: rgba(56, 189, 248, 0.18) !important;
-        color: #bae6fd !important;
-        border: 1px solid rgba(56, 189, 248, 0.4) !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-    }
-    [data-testid="stMultiSelect"] [data-baseweb="tag"] svg {
-        fill: #bae6fd !important;
-        color: #bae6fd !important;
-    }
-    /* выпадающий список опций мульти-селекта */
-    [data-baseweb="popover"] div[role="listbox"],
-    [data-baseweb="menu"] {
-        background-color: #0f2440 !important;
-        border: 1px solid rgba(96, 165, 250, 0.3) !important;
-        border-radius: 12px !important;
-    }
-    [data-baseweb="menu"] li,
-    [data-baseweb="menu"] li * {
-        color: #e8eefc !important;
-    }
-    [data-baseweb="menu"] li:hover,
-    li[role="option"]:hover,
-    div[role="option"]:hover {
-        background-color: rgba(56, 189, 248, 0.18) !important;
     }
 
     /* ── Метрики ── */
@@ -830,18 +701,11 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
 
-    # Нормализация ключа для группировки (без пробелов, регистра, дефисов) — до дедупликации
-    df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_\.\,]+", "", regex=True)
-    df = df[df["_key"].str.len() > 0]
-
-    if df.empty:
-        return pd.DataFrame()
-
-    # Количество ВСЕХ строк (предложений) по артикулу во всех файлах, включая дубли
-    qty = df.groupby("_key").size().rename("Количество").reset_index()
-
     # Дедупликация: один артикул + один источник = одна запись (мин. цена)
-    df = df.sort_values("Цена").drop_duplicates(subset=["_key", "Источник"], keep="first")
+    df = df.sort_values("Цена").drop_duplicates(subset=["Артикул", "Источник"], keep="first")
+
+    # Нормализация ключа для группировки (без пробелов, регистр)
+    df["_key"] = df["Артикул"].str.upper().str.replace(r"[\s\-_\.\,]+", "", regex=True)
 
     # УНИКАЛЬНЫЕ источники + мин/макс цены
     grp = df.groupby("_key").agg(
@@ -853,7 +717,7 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
     # Индекс минимальной цены (среди всех строк для этого артикула)
     idx_min = df.groupby("_key")["Цена"].idxmin()
     df_best = df.loc[idx_min].copy()
-    df_best = df_best.merge(grp, on="_key", how="left").merge(qty, on="_key", how="left")
+    df_best = df_best.merge(grp, on="_key", how="left")
     df_best = df_best.drop(columns=["_key", "Цена"], errors="ignore")
     df_best = df_best.rename(columns={"Цена_мин": "Цена"})
 
@@ -867,7 +731,7 @@ def aggregate_best_prices(df_all: pd.DataFrame) -> pd.DataFrame:
 
     cols = [
         "Артикул", "Бренд", "Цена", "Источник",
-        "Предложений", "Количество", "Цена_макс", "Экономия_руб", "Экономия_%",
+        "Предложений", "Цена_макс", "Экономия_руб", "Экономия_%",
     ]
     df_best = df_best[[c for c in cols if c in df_best.columns]]
     df_best = df_best.sort_values("Артикул").reset_index(drop=True)
@@ -949,9 +813,9 @@ if "df_final" not in st.session_state:
 if "uploaded_objects" not in st.session_state:
     st.session_state.uploaded_objects = []
 
-# ═════════════════════════════════════════════════════════════════════════════
-# 5. САЙДБАР (нативный — слева, сворачивается пользователем)
-# ═════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. САЙДБАР
+# ─────────────────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
         """
@@ -1131,24 +995,16 @@ df_final: pd.DataFrame = st.session_state.df_final
 
 st.markdown(
     """
-    <div style="padding: 1.5rem 0 1.2rem; display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
-      <div>
-        <div class="hero-title">Price.Fusion · Агрегатор цен</div>
-        <div class="hero-sub">
-          Загрузите папку с прайсами. Система сама найдёт <b>Артикул / Бренд / Цену</b>,
-          сравнит предложения со всех файлов и оставит самую низкую цену с указанием источника.
-        </div>
+    <div style="padding: 1.5rem 0 1.2rem;">
+      <div class="hero-title">Price.Fusion · Агрегатор цен</div>
+      <div class="hero-sub">
+        Загрузите папку с прайсами. Система сама найдёт <b>Артикул / Бренд / Цену</b>,
+        сравнит предложения со всех файлов и оставит самую низкую цену с указанием источника.
       </div>
-    </div>
-    <div style="margin-bottom:0.8rem;">
-      <a href="#" onclick="window.location.reload(); return false;" style="background:#0f2440;border:1.5px solid #60a5fa;color:#fff;padding:.45rem .9rem;border-radius:10px;font-weight:700;font-size:.85rem;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;box-shadow:0 4px 15px rgba(96,165,250,.3);cursor:pointer;">
-        <span style="font-size:1.1rem;">☰</span> Открыть панель загрузки
-      </a>
-      <span style="font-size:.75rem;color:#93c5fd;margin-left:.5rem;">(если сайдбар скрыт — обновите страницу или нажмите кнопку)</span>
     </div>
     """,
     unsafe_allow_html=True,
-  )
+)
 
 if df_final.empty and not st.session_state.parsed_results:
     c1, c2, c3 = st.columns(3)
@@ -1367,7 +1223,7 @@ if not df_final.empty:
 
         disp_cols = [
             "Артикул", "Бренд", "Цена", "Источник",
-            "Предложений", "Количество", "Экономия_руб", "Экономия_%",
+            "Предложений", "Экономия_руб", "Экономия_%",
         ]
         disp_cols = [c for c in disp_cols if c in df_view.columns]
 
@@ -1385,11 +1241,6 @@ if not df_final.empty:
             default=[c for c in disp_cols if c in all_available_cols],
             help="Укажите, какие именно колонки должны попасть в итоговый Excel и CSV файл."
         )
-        if not export_cols:
-            export_cols = [c for c in ["Артикул", "Цена", "Источник"] if c in all_available_cols]
-            st.caption("⚠️ Не выбрано ни одного столбца — будет выгружен базовый набор: Артикул, Цена, Источник.")
-        else:
-            st.caption(f"📊 В файл попадёт столбцов: {len(export_cols)}")
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         n_rows = len(df_view)
@@ -1503,10 +1354,6 @@ if not df_final.empty:
                 "Предложений": st.column_config.NumberColumn(
                     "📊 Источников", width="small",
                     help="Кол-во уникальных поставщиков",
-                ),
-                "Количество": st.column_config.NumberColumn(
-                    "🔢 Кол-во строк", width="small",
-                    help="Всего строк с этим артикулом во всех загруженных прайсах (включая дубли)",
                 ),
                 "Экономия_руб": st.column_config.NumberColumn("💚 Экономия (₽)", format="%.2f ₽", width="small"),
                 "Экономия_%": st.column_config.NumberColumn("📉 Экономия (%)", format="%.1f%%", width="small"),
