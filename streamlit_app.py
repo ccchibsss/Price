@@ -219,7 +219,7 @@ st.markdown(
     [data-testid="stFileUploaderFile"] *,
     [data-testid="stFileUploaderFileName"],
     [data-testid="stFileUploaderFileData"] small {
-        color: #e8eefc !important;
+        color: #666 !important;
     }
     [data-testid="stFileUploaderDeleteBtn"] button,
     [data-testid="stFileUploaderFile"] button {
